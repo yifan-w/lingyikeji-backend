@@ -5,6 +5,7 @@ import com.lingyikeji.backend.domain.entities.Disease;
 import com.lingyikeji.backend.domain.entities.Message;
 import com.lingyikeji.backend.domain.repo.ConversationRepo;
 import com.lingyikeji.backend.domain.repo.DiseaseRepo;
+import com.lingyikeji.backend.infra.gateway.LLMService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class MainApplicationService {
   private final DiseaseRepo diseaseRepo;
   private final ConversationRepo conversationRepo;
+  private final LLMService llmService;
 
   public String createDisease(String name, String desc) {
     return diseaseRepo.save(Disease.create(name, desc));
@@ -30,5 +32,9 @@ public class MainApplicationService {
 
   public Conversation getConversation(String id) {
     return conversationRepo.findById(id).orElseThrow();
+  }
+
+  public String testLLM(String message) {
+    return llmService.sendPrompt(message);
   }
 }

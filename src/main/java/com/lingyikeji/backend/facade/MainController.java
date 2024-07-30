@@ -35,4 +35,9 @@ public class MainController {
   public Resp getConversation(String id) {
     return Resp.success(applicationService.getConversation(id));
   }
+
+  @PostMapping("/testLLM")
+  public Resp testLLM(String message) {
+    return Resp.success(Map.of("msg", applicationService.testLLM(message)));
+  }
 }

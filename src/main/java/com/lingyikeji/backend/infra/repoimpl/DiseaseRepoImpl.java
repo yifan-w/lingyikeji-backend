@@ -1,4 +1,4 @@
-package com.lingyikeji.backend.domain.repo.impl;
+package com.lingyikeji.backend.infra.repoimpl;
 
 import static dev.morphia.query.experimental.filters.Filters.eq;
 
