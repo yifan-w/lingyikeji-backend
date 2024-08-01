@@ -16,6 +16,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class MainController {
   private final MainApplicationService applicationService;
 
+  @PostMapping("/createUserAuth")
+  public Resp createUserAuth(String userName, String pwd) {
+    return Resp.success(Map.of("result", applicationService.createUserAuth(userName, pwd)));
+  }
+
+  @PostMapping("/authUser")
+  public Resp authUser(String userName, String pwd) {
+    applicationService.authUser(userName, pwd);
+    return Resp.success(Map.of("result", applicationService.authUser(userName, pwd)));
+  }
+
   @PostMapping("/createDisease")
   public Resp createDisease(String name, String desc) {
     return Resp.success(Map.of("id", applicationService.createDisease(name, desc)));
