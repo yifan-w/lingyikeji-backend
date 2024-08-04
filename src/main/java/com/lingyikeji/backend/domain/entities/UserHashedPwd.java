@@ -1,10 +1,8 @@
 package com.lingyikeji.backend.domain.entities;
 
+import com.lingyikeji.backend.utils.HashUtils;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,15 +18,7 @@ public class UserHashedPwd {
   private String hashedPwd;
 
   public static UserHashedPwd create(String userName, String unHashedPwd) {
-    MessageDigest digest;
-    try {
-      digest = MessageDigest.getInstance("SHA-256");
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
-    byte[] hash = digest.digest(unHashedPwd.getBytes(StandardCharsets.UTF_8));
-    String hashedPwd = new String(hash, StandardCharsets.UTF_8);
-    return new UserHashedPwd(null, userName, hashedPwd);
+    return new UserHashedPwd(null, userName, HashUtils.doHash(unHashedPwd));
   }
 
   private UserHashedPwd(String id, String userName, String hashedPwd) {
