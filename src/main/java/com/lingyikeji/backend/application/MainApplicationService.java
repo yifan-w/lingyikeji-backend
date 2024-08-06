@@ -13,19 +13,31 @@ import com.lingyikeji.backend.infra.gateway.LLMService;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /** Created by Yifan Wang on 2023/10/1. */
 @Service
-@RequiredArgsConstructor
 public class MainApplicationService {
   private final DiseaseRepo diseaseRepo;
   private final ConversationRepo conversationRepo;
   private final LLMService llmService;
   private final UserAuthRepo userAuthRepo;
   private final DepartmentRepo departmentRepo;
+
+  public MainApplicationService(
+      DiseaseRepo diseaseRepo,
+      ConversationRepo conversationRepo,
+      @Qualifier("openAILLMService") LLMService llmService,
+      UserAuthRepo userAuthRepo,
+      DepartmentRepo departmentRepo) {
+    this.diseaseRepo = diseaseRepo;
+    this.conversationRepo = conversationRepo;
+    this.llmService = llmService;
+    this.userAuthRepo = userAuthRepo;
+    this.departmentRepo = departmentRepo;
+  }
 
   public boolean createUserAuth(String userName, String pwd) {
     return userAuthRepo.save(UserHashedPwd.create(userName, pwd));
