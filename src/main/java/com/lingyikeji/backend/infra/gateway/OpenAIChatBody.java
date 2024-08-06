@@ -24,6 +24,6 @@ public class OpenAIChatBody {
     private String content;
   }
 
-  private String model = "gpt-4o";
+  private String model = "gpt-4o-mini";
   private List<OpenAIChatMessage> messages;
 }
