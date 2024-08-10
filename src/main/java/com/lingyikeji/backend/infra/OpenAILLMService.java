@@ -39,6 +39,7 @@ public class OpenAILLMService implements LLMService {
 
   @Override
   public String sendPrompt(String prompt) {
+    logger.info("Prompt to Openai: {}", prompt);
     OpenAIChatBody body = OpenAIChatBody.create(prompt);
     String response = httpService.doPost(URL, HEADERS, body);
     logger.info("OpenAI response: {}", response);

@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserHashedPwd {
+public class UserHashedPwd extends BaseEntity {
   @Id private String id;
   private String userName;
   private String hashedPwd;
@@ -22,6 +22,7 @@ public class UserHashedPwd {
   }
 
   private UserHashedPwd(String id, String userName, String hashedPwd) {
+    super();
     this.id = id;
     this.userName = userName;
     this.hashedPwd = hashedPwd;

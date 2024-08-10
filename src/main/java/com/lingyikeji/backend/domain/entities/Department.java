@@ -14,7 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Department {
+public class Department extends BaseEntity {
   @Id private String id;
   private String name;
   @Reference private List<Disease> diseaseList = new LinkedList<>();
@@ -24,6 +24,7 @@ public class Department {
   }
 
   private Department(String id, String name, List<Disease> diseaseList) {
+    super();
     this.id = id;
     this.name = name;
     this.diseaseList = diseaseList;

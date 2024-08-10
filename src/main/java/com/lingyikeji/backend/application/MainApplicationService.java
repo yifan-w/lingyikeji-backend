@@ -4,14 +4,19 @@ import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
 import com.lingyikeji.backend.domain.entities.Disease;
 import com.lingyikeji.backend.domain.entities.Message;
+import com.lingyikeji.backend.domain.entities.Patient;
+import com.lingyikeji.backend.domain.entities.PatientQA;
 import com.lingyikeji.backend.domain.entities.UserHashedPwd;
 import com.lingyikeji.backend.domain.repo.ConversationRepo;
 import com.lingyikeji.backend.domain.repo.DepartmentRepo;
 import com.lingyikeji.backend.domain.repo.DiseaseRepo;
+import com.lingyikeji.backend.domain.repo.PatientRepo;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
 import com.lingyikeji.backend.infra.gateway.LLMService;
+import com.lingyikeji.backend.utils.GsonUtils;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,18 +30,21 @@ public class MainApplicationService {
   private final LLMService llmService;
   private final UserAuthRepo userAuthRepo;
   private final DepartmentRepo departmentRepo;
+  private final PatientRepo patientRepo;
 
   public MainApplicationService(
       DiseaseRepo diseaseRepo,
       ConversationRepo conversationRepo,
       @Qualifier("openAILLMService") LLMService llmService,
       UserAuthRepo userAuthRepo,
-      DepartmentRepo departmentRepo) {
+      DepartmentRepo departmentRepo,
+      PatientRepo patientRepo) {
     this.diseaseRepo = diseaseRepo;
     this.conversationRepo = conversationRepo;
     this.llmService = llmService;
     this.userAuthRepo = userAuthRepo;
     this.departmentRepo = departmentRepo;
+    this.patientRepo = patientRepo;
   }
 
   public boolean createUserAuth(String userName, String pwd) {
@@ -78,6 +86,34 @@ public class MainApplicationService {
 
   public Conversation getConversation(String id) {
     return conversationRepo.findById(id).orElseThrow();
+  }
+
+  public String createPatient(String patientJson) {
+    Patient patient = GsonUtils.GSON.fromJson(patientJson, Patient.class);
+    return patientRepo.save(patient);
+  }
+
+  public Map<String, String> chat(String conversationId, String question) {
+    /*
+    Conversation conversation =
+        conversationRepo
+            .findById(conversationId)
+            .orElseThrow(
+                () -> new RuntimeException("Conversation not found. ID: " + conversationId));
+     */
+    Patient patient = patientRepo.findById("66b4d61f1f01cc37dcc02327").get();
+    String prompt =
+        GsonUtils.GSON.toJson(patient.getPatientQAList())
+            + "以上是一个json对象数组，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会提一个问题，请你从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
+            + "问："
+            + question;
+    String answer = this.testLLM(prompt);
+    List<PatientQA> patientQAList =
+        patient.getPatientQAList().stream()
+            .filter(patientQA -> patientQA.getA().contains(answer))
+            .toList();
+    String videoUrl = patientQAList.isEmpty() ? "" : patientQAList.get(0).getVideoUrl();
+    return Map.of("answer", answer, "video", videoUrl);
   }
 
   public String testLLM(String message) {

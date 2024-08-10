@@ -3,7 +3,6 @@ package com.lingyikeji.backend.domain.entities;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Reference;
-import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Getter;
@@ -15,12 +14,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Conversation {
+public class Conversation extends BaseEntity {
   @Id private String id;
   @Reference private Disease disease;
   private List<Message> msgList = new LinkedList<>();
-  private LocalDateTime createdAt;
-  private LocalDateTime updatedAt;
 
   public static Conversation create(Disease disease, Message message) {
     List<Message> msgList = new LinkedList<>();
@@ -29,10 +26,9 @@ public class Conversation {
   }
 
   private Conversation(String id, Disease disease, List<Message> msgList) {
+    super();
     this.id = id;
     this.disease = disease;
     this.msgList = msgList;
-    this.createdAt = LocalDateTime.now();
-    this.updatedAt = this.createdAt;
   }
 }
