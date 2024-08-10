@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 /** Created by Yifan Wang on 2024/8/5. */
 @Service("openAILLMService")
@@ -18,24 +17,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class OpenAILLMService implements LLMService {
   private static final Logger logger = LogManager.getLogger(OpenAILLMService.class);
   private static final String URL = "https://chat.aawang.bio/v1/chat/completions";
+  private static final String TOKEN = System.getenv("openai_token");
   private static final Map<String, String> HEADERS =
-      Map.of(
-          "Authorization",
-          "Bearer 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",
-          "Content-Type",
-          "application/json");
+      Map.of("Authorization", "Bearer " + TOKEN, "Content-Type", "application/json");
   private final HttpService httpService;
-
-  private final WebClient client =
-      WebClient.builder()
-          .baseUrl("https://chat.aawang.bio/v1/chat/completions")
-          .defaultHeaders(
-              httpHeaders -> {
-                httpHeaders.set(
-                    "Authorization", "Bearer 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");
-                httpHeaders.set("Content-Type", "application/json");
-              })
-          .build();
 
   @Override
   public String sendPrompt(String prompt) {
