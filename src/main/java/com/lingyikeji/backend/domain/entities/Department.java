@@ -1,5 +1,6 @@
 package com.lingyikeji.backend.domain.entities;
 
+import com.google.gson.annotations.Expose;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Reference;
@@ -17,16 +18,24 @@ import lombok.Setter;
 public class Department extends BaseEntity {
   @Id private String id;
   private String name;
-  @Reference private List<Disease> diseaseList = new LinkedList<>();
 
-  public static Department create(String name, List<Disease> diseaseList) {
-    return new Department(null, name, diseaseList);
+  @Expose(serialize = false)
+  @Reference
+  private List<Department> subDepartments = new LinkedList<>();
+
+  @Reference private List<Patient> patientList = new LinkedList<>();
+
+  public static Department create(
+      String name, List<Department> subDepartments, List<Patient> patientList) {
+    return new Department(null, name, subDepartments, patientList);
   }
 
-  private Department(String id, String name, List<Disease> diseaseList) {
+  private Department(
+      String id, String name, List<Department> subDepartments, List<Patient> patientList) {
     super();
     this.id = id;
     this.name = name;
-    this.diseaseList = diseaseList;
+    this.subDepartments = subDepartments;
+    this.patientList = patientList;
   }
 }

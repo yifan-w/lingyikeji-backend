@@ -2,6 +2,8 @@ package com.lingyikeji.backend.facade;
 
 import com.lingyikeji.backend.application.MainApplicationService;
 import com.lingyikeji.backend.application.vo.Resp;
+import com.lingyikeji.backend.domain.entities.Department;
+import com.lingyikeji.backend.utils.GsonUtils;
 import com.lingyikeji.backend.utils.HashUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -9,9 +11,13 @@ import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.InputStreamResource;
@@ -59,13 +65,27 @@ public class MainController {
   }
 
   @PostMapping("/createDept")
-  public Resp createDept(String name) {
-    return Resp.success(Map.of("id", applicationService.createDepartment(name)));
+  public Resp createDept(String name, String subDeptIds, String patientIds) {
+    List<String> subDeptIdList =
+        StringUtils.isBlank(subDeptIds)
+            ? Collections.emptyList()
+            : Arrays.stream(subDeptIds.split(",")).toList();
+    List<String> patientIdList =
+        StringUtils.isBlank(patientIds)
+            ? Collections.emptyList()
+            : Arrays.stream(patientIds.split(",")).toList();
+    return Resp.success(
+        Map.of("id", applicationService.createDepartment(name, subDeptIdList, patientIdList)));
   }
 
   @GetMapping("/getAllDepts")
-  public Resp getAllDept() {
-    return Resp.success(Map.of("depts", applicationService.getAllDepartments()));
+  public Resp getAllDept(String deptId) {
+    return Resp.success(
+        Map.of(
+            "depts",
+            applicationService.getAllDepartments(deptId).stream()
+                .map(dept -> GsonUtils.GSON.fromJson(GsonUtils.GSON.toJson(dept), Department.class))
+                .toList()));
   }
 
   @PostMapping("/createDisease")

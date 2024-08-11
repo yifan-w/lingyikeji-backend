@@ -8,6 +8,9 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.Expose;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
@@ -19,6 +22,7 @@ public class GsonUtils {
   public static final Gson GSON =
       new GsonBuilder()
           .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
+          .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
           .addSerializationExclusionStrategy(
               new ExclusionStrategy() {
                 @Override
@@ -55,6 +59,14 @@ public class GsonUtils {
       return LocalDateTime.parse(
           json.getAsString(),
           DateTimeFormatter.ofPattern("d::MMM::uuuu HH::mm::ss").withLocale(Locale.ENGLISH));
+    }
+  }
+
+  private static class LocalDateTimeSerializer implements JsonSerializer<LocalDateTime> {
+    public JsonElement serialize(
+        LocalDateTime localDateTime, Type typeOfSrc, JsonSerializationContext context) {
+      return new JsonPrimitive(
+          localDateTime.format(DateTimeFormatter.ofPattern("d::MMM::uuuu HH::mm::ss")));
     }
   }
 }

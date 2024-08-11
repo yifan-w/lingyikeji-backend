@@ -14,10 +14,11 @@ import com.lingyikeji.backend.domain.repo.PatientRepo;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
 import com.lingyikeji.backend.infra.gateway.LLMService;
 import com.lingyikeji.backend.utils.GsonUtils;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -63,12 +64,27 @@ public class MainApplicationService {
         userHashedPwdOptional.get().getHashedPwd(), inputUserHashedPwd.getHashedPwd());
   }
 
-  public String createDepartment(String name) {
-    return departmentRepo.save(Department.create(name, new LinkedList<>()));
+  public String createDepartment(String name, List<String> subDeptIds, List<String> patientIds) {
+    List<Department> subDepartments =
+        CollectionUtils.isEmpty(subDeptIds)
+            ? Collections.emptyList()
+            : subDeptIds.stream().map(deptId -> departmentRepo.findById(deptId).get()).toList();
+    List<Patient> patients =
+        CollectionUtils.isEmpty(patientIds)
+            ? Collections.emptyList()
+            : patientIds.stream().map(patientId -> patientRepo.findById(patientId).get()).toList();
+    return departmentRepo.save(Department.create(name, subDepartments, patients));
   }
 
-  public List<Department> getAllDepartments() {
-    return departmentRepo.findAll();
+  public List<Department> getAllDepartments(String deptId) {
+    if (deptId == null) {
+      return departmentRepo.findAll().stream()
+          .filter(dept -> CollectionUtils.isNotEmpty(dept.getSubDepartments()))
+          .toList();
+    }
+
+    Department department = departmentRepo.findById(deptId).get();
+    return department.getSubDepartments();
   }
 
   public String createDisease(String name, String desc) {

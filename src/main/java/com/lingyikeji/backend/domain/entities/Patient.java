@@ -1,7 +1,9 @@
 package com.lingyikeji.backend.domain.entities;
 
+import com.google.gson.annotations.Expose;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
+import java.util.LinkedList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +17,9 @@ public class Patient extends BaseEntity {
   private Sex sex;
   private String name;
   private int age;
-  private List<PatientQA> patientQAList;
+
+  @Expose(serialize = false)
+  private List<PatientQA> patientQAList = new LinkedList<>();
 
   public static enum Sex {
     MALE,
