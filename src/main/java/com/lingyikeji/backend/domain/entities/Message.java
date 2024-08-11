@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Message {
   private static enum Type {
-    DOCTOR,
+    USER,
     PATIENT
   }
 
@@ -21,8 +21,8 @@ public class Message {
   private String content;
   private LocalDateTime createdAt;
 
-  public static Message fromDoctor(String content) {
-    return new Message(Type.DOCTOR, content);
+  public static Message fromUser(String content) {
+    return new Message(Type.USER, content);
   }
 
   public static Message fromPatient(String content) {
@@ -35,8 +35,8 @@ public class Message {
     this.createdAt = LocalDateTime.now();
   }
 
-  public boolean fromDoctor() {
-    return this.type == Type.DOCTOR;
+  public boolean fromUser() {
+    return this.type == Type.USER;
   }
 
   public boolean fromPatient() {

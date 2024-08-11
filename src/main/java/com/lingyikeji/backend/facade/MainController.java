@@ -2,6 +2,7 @@ package com.lingyikeji.backend.facade;
 
 import com.lingyikeji.backend.application.MainApplicationService;
 import com.lingyikeji.backend.application.vo.Resp;
+import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
 import com.lingyikeji.backend.utils.GsonUtils;
 import com.lingyikeji.backend.utils.HashUtils;
@@ -24,6 +25,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,9 +59,12 @@ public class MainController {
   public Resp authUser(String userName, String pwd, HttpServletResponse response) {
     boolean authResult = applicationService.authUser(userName, pwd);
     if (authResult) {
-      Cookie cookie = new Cookie("token", HashUtils.doHash(userName));
-      cookie.setMaxAge(60 * 60 * 24 * 30);
-      response.addCookie(cookie);
+      Cookie tokenCookie = new Cookie("token", HashUtils.doHash(userName));
+      tokenCookie.setMaxAge(60 * 60 * 24 * 30);
+      response.addCookie(tokenCookie);
+      Cookie userNameCookie = new Cookie("userName", userName);
+      userNameCookie.setMaxAge(60 * 60 * 24 * 30);
+      response.addCookie(userNameCookie);
     }
     return Resp.success(Map.of("result", authResult));
   }
@@ -67,11 +72,11 @@ public class MainController {
   @PostMapping("/createDept")
   public Resp createDept(String name, String subDeptIds, String patientIds) {
     List<String> subDeptIdList =
-        StringUtils.isBlank(subDeptIds)
+        StringUtils.isEmpty(subDeptIds)
             ? Collections.emptyList()
             : Arrays.stream(subDeptIds.split(",")).toList();
     List<String> patientIdList =
-        StringUtils.isBlank(patientIds)
+        StringUtils.isEmpty(patientIds)
             ? Collections.emptyList()
             : Arrays.stream(patientIds.split(",")).toList();
     return Resp.success(
@@ -94,8 +99,10 @@ public class MainController {
   }
 
   @PostMapping("/createConversation")
-  public Resp createConversation(String diseaseId) {
-    return Resp.success(Map.of("id", applicationService.createConversation(diseaseId)));
+  public Resp createConversation(
+      @CookieValue("userName") String userName, String deptId, String patientId, String msg) {
+    return Resp.success(
+        Map.of("id", applicationService.createConversation(userName, deptId, patientId, msg)));
   }
 
   @GetMapping("/getDisease")
@@ -105,7 +112,9 @@ public class MainController {
 
   @GetMapping("/getConversation")
   public Resp getConversation(String id) {
-    return Resp.success(applicationService.getConversation(id));
+    return Resp.success(
+        GsonUtils.GSON.fromJson(
+            GsonUtils.GSON.toJson(applicationService.getConversation(id)), Conversation.class));
   }
 
   @PostMapping("/createPatient")

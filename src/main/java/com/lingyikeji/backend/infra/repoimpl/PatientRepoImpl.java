@@ -7,9 +7,11 @@ import com.lingyikeji.backend.domain.repo.PatientRepo;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Sort;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 /** Created by Yifan Wang on 2024/7/18. */
@@ -20,6 +22,10 @@ public class PatientRepoImpl implements PatientRepo {
 
   @Override
   public String save(Patient patient) {
+    patient.setUpdatedAt(LocalDateTime.now());
+    if (StringUtils.isEmpty(patient.getId())) {
+      patient.setCreatedAt(LocalDateTime.now());
+    }
     return datastore.save(patient).getId();
   }
 

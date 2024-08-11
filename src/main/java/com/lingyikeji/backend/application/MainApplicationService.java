@@ -91,9 +91,12 @@ public class MainApplicationService {
     return diseaseRepo.save(Disease.create(name, desc));
   }
 
-  public String createConversation(String diseaseId) {
-    Disease disease = diseaseRepo.findById(diseaseId).orElseThrow();
-    return conversationRepo.save(Conversation.create(disease, Message.fromPatient("医生我不舒服")));
+  public String createConversation(String userName, String deptId, String patientId, String msg) {
+    Department department = departmentRepo.findById(deptId).get();
+    Patient patient = patientRepo.findById(patientId).get();
+    List<Message> msgList =
+        StringUtils.isEmpty(msg) ? Collections.emptyList() : List.of(Message.fromUser(msg));
+    return conversationRepo.save(Conversation.create(userName, department, patient, msgList));
   }
 
   public Disease getDisease(String id) {
@@ -110,20 +113,19 @@ public class MainApplicationService {
   }
 
   public Map<String, String> chat(String conversationId, String question) {
-    /*
-    Conversation conversation =
-        conversationRepo
-            .findById(conversationId)
-            .orElseThrow(
-                () -> new RuntimeException("Conversation not found. ID: " + conversationId));
-     */
-    Patient patient = patientRepo.findById("66b4d61f1f01cc37dcc02327").get();
+    Conversation conversation = conversationRepo.findById(conversationId).get();
+    Patient patient = conversation.getPatient();
     String prompt =
         GsonUtils.GSON.toJson(patient.getPatientQAList())
             + "以上是一个json对象数组，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会提一个问题，请你从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
             + "问："
             + question;
     String answer = this.testLLM(prompt);
+
+    conversation.addUserMsg(question);
+    conversation.addPatientMsg(answer);
+    conversationRepo.save(conversation);
+
     List<PatientQA> patientQAList =
         patient.getPatientQAList().stream()
             .filter(patientQA -> patientQA.getA().contains(answer))
