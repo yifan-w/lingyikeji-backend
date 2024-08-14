@@ -87,6 +87,10 @@ public class MainApplicationService {
     return department.getSubDepartments();
   }
 
+  public List<Patient> getAllPatients() {
+    return patientRepo.findAll();
+  }
+
   public String createDisease(String name, String desc) {
     return diseaseRepo.save(Disease.create(name, desc));
   }
@@ -117,7 +121,7 @@ public class MainApplicationService {
     Patient patient = conversation.getPatient();
     String prompt =
         GsonUtils.GSON.toJson(patient.getPatientQAList())
-            + "以上是一个json对象数组，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会提一个问题，请你从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
+            + "以上是一个json对象数组，记录了一个医生和一个病人的对话，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会作为医生提一个问题，请你作为病人考虑从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
             + "问："
             + question;
     String answer = this.testLLM(prompt);

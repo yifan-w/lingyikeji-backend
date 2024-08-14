@@ -17,6 +17,8 @@ public class Patient extends BaseEntity {
   private Sex sex;
   private String name;
   private int age;
+  private String chiefComplaint;
+  private String idleVideoUrl;
 
   @Expose(serialize = false)
   private List<PatientQA> patientQAList = new LinkedList<>();

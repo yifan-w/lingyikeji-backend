@@ -4,6 +4,7 @@ import com.lingyikeji.backend.application.MainApplicationService;
 import com.lingyikeji.backend.application.vo.Resp;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
+import com.lingyikeji.backend.facade.vo.PatientVO;
 import com.lingyikeji.backend.utils.GsonUtils;
 import com.lingyikeji.backend.utils.HashUtils;
 import jakarta.servlet.http.Cookie;
@@ -105,6 +106,20 @@ public class MainController {
         Map.of("id", applicationService.createConversation(userName, deptId, patientId, msg)));
   }
 
+  @PostMapping("/createConversationV0")
+  public Resp createConversationV0(
+      @CookieValue("userName") String userName, String patientId, String msg) {
+    String deptId = "66b8719ecfe54b4ce9c69074";
+    return Resp.success(
+        Map.of("id", applicationService.createConversation(userName, deptId, patientId, msg)));
+  }
+
+  @GetMapping("/getAllPatientsV0")
+  public Resp getAllPatientsV0(String id) {
+    return Resp.success(
+        applicationService.getAllPatients().stream().map(PatientVO::fromPatient).toList());
+  }
+
   @GetMapping("/getDisease")
   public Resp getDisease(String id) {
     return Resp.success(applicationService.getDisease(id));
@@ -156,19 +171,6 @@ public class MainController {
 
   @PostMapping("/chat")
   public Resp chat(String conversationId, String question) {
-    /*
-    String prompt =
-        "[{\"q\":\"您怎么不舒服？\",\"a\":\"我最近几天老在咳嗽，喉咙也疼的不行，还流鼻涕\"},{\"q\":\"注意到与咳嗽相关的其他症状了吗?\",\"a\":\"还有喉咙痛和流鼻涕\"},{\"q\":\"这种症状持续多久了？\",\"a\":\"流鼻涕一周\"},{\"q\":\"告诉我咳嗽开始的时间及咳嗽是怎样开始的\",\"a\":\"一个星期前受凉了就开始咳嗽了\"},{\"q\":\"咳嗽与气喘相关吗?\",\"a\":\"我没有气喘的症状啊\"},{\"q\":\"起病前有没有什么诱因？\",\"a\":\"一周前淋了雨，可能受凉了，之后就这样了\"},{\"q\":\"你感觉最近症状加重了吗？\",\"a\":\"差不多的，但是晚上咳嗽会严重些\"},{\"q\":\"什么情况下感觉症状加重了？\",\"a\":\"没有更严重\"},{\"q\":\"起病以后去医院看过吗？\",\"a\":\"昨天去过社区医院\"},{\"q\":\"医生考虑诊断是什么？\",\"a\":\"医生说可能是感冒了\"},{\"q\":\"做过什么检查和治疗？\",\"a\":\"吃了一些阿莫西林\"},{\"q\":\"效果怎么样？\",\"a\":\"效果一般，所以又来你这边了\"},{\"q\":\"除了这些症状以外，是否还伴有其它异常？\",\"a\":\"就是咳嗽和喉咙痛，还有些鼻涕，别的还好，没发烧、头也不疼\"},{\"q\":\"精神、饮食、睡眠怎么样？\",\"a\":\"都没有受影响，挺好的\"},{\"q\":\"什么时候开始出现这种症状的？\",\"a\":\"差不多一个星期之前开始的\"},{\"q\":\"现在情况怎么样？\",\"a\":\"现在还是差不多的情况\"},{\"q\":\"每次持续多长时间？\",\"a\":\"最近一个星期都有这些不舒服\"},{\"q\":\"你感觉最近症状减轻了吗？\",\"a\":\"没有减轻\"},{\"q\":\"症状发作有什么规律吗，比如与气候、环境、情绪、体位变化、咳嗽，或进食、呼吸、运动、劳累等因素有关吗？\",\"a\":\"我感觉没有什么规律\"},{\"q\":\"发病后大小便有没有变化？\",\"a\":\"大小便都还好，没有什么变化\"},{\"q\":\"起病以后，体重、体力怎么样？\",\"a\":\"体重没有变化，体力挺好的\"},{\"q\":\"咽痛的程度如何？\",\"a\":\"挺严重的，我说话都痛\"},{\"q\":\"是否伴有异物感？\",\"a\":\"没有这种感觉\"},{\"q\":\"具体是什么样的疼痛？\",\"a\":\"咳嗽的时候感觉喉咙里撕裂的痛\"},{\"q\":\"吞咽东西的时候疼痛会更严重吗？\",\"a\":\"会更痛一些\"},{\"q\":\"发烧了吗？\",\"a\":\"没有发烧\"},{\"q\":\"疼痛有没有扯到其他部位？\",\"a\":\"没有\"},{\"q\":\"呼吸或者咽东西的时候觉得困难吗？\",\"a\":\"还好，对呼吸影响\"},{\"q\":\"鼻涕是什么颜色的？\",\"a\":\"就是清鼻涕\"},{\"q\":\"除了流鼻涕，还有没有打喷嚏、鼻塞？\",\"a\":\"没有\"},{\"q\":\"除了流鼻涕，喉咙痛不痛？\",\"a\":\"痛啊，说话都有点痛，尤其咳嗽的时候特别痛\"},{\"q\":\"过去身体状况怎么样？\",\"a\":\"身体还可以\"},{\"q\":\"以前患过什么慢性病吗？比如高血压、糖尿病、心脏病等\",\"a\":\"以前什么病都没有\"},{\"q\":\"以前患过什么传染病吗？比如病毒性肝炎、结核病、血吸虫病、伤寒、痢疾等\",\"a\":\"没有得过传染病\"},{\"q\":\"以前有没有做过什么手术？\",\"a\":\"没有做过手术\"},{\"q\":\"以前有没有受过外伤？\",\"a\":\"没有受过外伤\"},{\"q\":\"是否按国家要求接种了疫苗？\",\"a\":\"是的，疫苗都接种了\"},{\"q\":\"有没有输过血？\",\"a\":\"没有输过血\"},{\"q\":\"有没有对什么食物或者药物过敏的？\",\"a\":\"对芒果过敏，药物过敏没有发现\"},{\"q\":\"当时有哪些过敏症状，是否出现皮疹或者呼吸困难？\",\"a\":\"皮肤发红肿起来，还有疹子，没有呼吸困难\"},{\"q\":\"您有抽烟的嗜好吗?\",\"a\":\"我抽烟\"},{\"q\":\"您有饮酒的嗜好吗?\",\"a\":\"我不喝酒\"},{\"q\":\"抽烟多长时间了？\",\"a\":\"20年了\"},{\"q\":\"抽烟每天的量是多少？\",\"a\":\"一天半包吧\"},{\"q\":\"家属身体健康状况怎么样？\",\"a\":\"家里人身体都还可以\"},{\"q\":\"家里人有得过肿瘤或者精神方面的疾病吗？\",\"a\":\"没有呢\"},{\"q\":\"您什么时候结婚的？\",\"a\":\"我适龄结婚的\"},{\"q\":\"结婚多少年了？\",\"a\":\"结婚三十多年了\"},{\"q\":\"您爱人身体健康状况怎么样？\",\"a\":\"身体挺好的\"}]"
-            + "以上是一个json对象数组，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会提一个问题，请你从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
-            + "问："
-            + question;
-    return Resp.success(
-        Map.of(
-            "answer",
-            applicationService.testLLM(prompt),
-            "video",
-            "https://www.pixelgeom.com/api/lingyi/getLivestream?id=y_demo"));
-     */
     return Resp.success(applicationService.chat(conversationId, question));
   }
 }

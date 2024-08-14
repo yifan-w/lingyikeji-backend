@@ -29,8 +29,10 @@ public class PatientQA {
   }
 
   public String getVideoUrl() {
-    return "https://www.pixelgeom.com/api/lingyi/getLivestream?id="
-        + videoUrl.substring(0, videoUrl.length() - 3);
+
+    return "https://www.pixelgeom.com/livestream/lingyi/"
+        + videoUrl.substring(0, videoUrl.indexOf("."))
+        + ".mp4";
   }
 
   public String toString() {
