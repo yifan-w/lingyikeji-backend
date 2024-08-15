@@ -20,12 +20,15 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /** Created by Yifan Wang on 2023/10/1. */
 @Service
 public class MainApplicationService {
+  private static final Logger logger = LogManager.getLogger(MainApplicationService.class);
   private final DiseaseRepo diseaseRepo;
   private final ConversationRepo conversationRepo;
   private final LLMService llmService;
@@ -119,6 +122,7 @@ public class MainApplicationService {
   public Map<String, String> chat(String conversationId, String question) {
     Conversation conversation = conversationRepo.findById(conversationId).get();
     Patient patient = conversation.getPatient();
+    logger.info("patient id for conversation {}: {}", conversationId, patient.getId());
     String prompt =
         GsonUtils.GSON.toJson(patient.getPatientQAList())
             + "以上是一个json对象数组，记录了一个医生和一个病人的对话，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会作为医生提一个问题，请你作为病人考虑从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
