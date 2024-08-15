@@ -24,7 +24,7 @@ public class HttpHandlerInterceptor implements HandlerInterceptor {
         "request uri: {}, parameters: {}, userName; {}",
         request.getRequestURI(),
         GsonUtils.GSON.toJson(request.getParameterMap()),
-        Arrays.stream(request.getCookies())
+        Arrays.stream(request.getCookies() == null ? new Cookie[0] : request.getCookies())
             .filter(cookie -> Objects.equals(cookie.getName(), "userName"))
             .findFirst()
             .map(Cookie::getValue)
