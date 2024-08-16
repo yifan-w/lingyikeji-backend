@@ -1,5 +1,6 @@
 package com.lingyikeji.backend.application;
 
+import com.lingyikeji.backend.application.vo.ChatAnswerVO;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
 import com.lingyikeji.backend.domain.entities.Disease;
@@ -16,7 +17,6 @@ import com.lingyikeji.backend.infra.gateway.LLMService;
 import com.lingyikeji.backend.utils.GsonUtils;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +49,24 @@ public class MainApplicationService {
     this.userAuthRepo = userAuthRepo;
     this.departmentRepo = departmentRepo;
     this.patientRepo = patientRepo;
+  }
+
+  public void patientAddVrData(String patientId) {
+    Patient patient = patientRepo.findById(patientId).get();
+    patient
+        .getPatientQAList()
+        .forEach(
+            patientQA -> {
+              String prefix =
+                  patientQA
+                      .getVideoUrl()
+                      .substring(
+                          patientQA.getVideoUrl().lastIndexOf("/") + 1,
+                          patientQA.getVideoUrl().lastIndexOf("."));
+              patientQA.setVrJsonUrl(prefix + ".json");
+              patientQA.setVrWavUrl(prefix + ".wav");
+            });
+    patientRepo.save(patient);
   }
 
   public boolean createUserAuth(String userName, String pwd) {
@@ -119,7 +137,7 @@ public class MainApplicationService {
     return patientRepo.save(patient);
   }
 
-  public Map<String, String> chat(String conversationId, String question) {
+  public ChatAnswerVO chat(String conversationId, String question) {
     Conversation conversation = conversationRepo.findById(conversationId).get();
     Patient patient = conversation.getPatient();
     logger.info("patient id for conversation {}: {}", conversationId, patient.getId());
@@ -134,12 +152,14 @@ public class MainApplicationService {
     conversation.addPatientMsg(answer);
     conversationRepo.save(conversation);
 
-    List<PatientQA> patientQAList =
+    Optional<PatientQA> patientQAOptional =
         patient.getPatientQAList().stream()
             .filter(patientQA -> patientQA.getA().contains(answer))
-            .toList();
-    String videoUrl = patientQAList.isEmpty() ? "" : patientQAList.get(0).getVideoUrl();
-    return Map.of("answer", answer, "video", videoUrl);
+            .findFirst();
+    String video = patientQAOptional.map(PatientQA::getVideoUrl).orElse("");
+    String vrJson = patientQAOptional.map(PatientQA::getVrJsonUrl).orElse("");
+    String vrWav = patientQAOptional.map(PatientQA::getVrWavUrl).orElse("");
+    return ChatAnswerVO.create(answer, video, vrJson, vrWav);
   }
 
   public String testLLM(String message) {

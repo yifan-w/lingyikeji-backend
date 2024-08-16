@@ -21,7 +21,7 @@ public class HttpHandlerInterceptor implements HandlerInterceptor {
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
     logger.info(
-        "request uri: {}, parameters: {}, userName; {}",
+        "request uri: {}, parameters: {}, userName: {}",
         request.getRequestURI(),
         GsonUtils.GSON.toJson(request.getParameterMap()),
         Arrays.stream(request.getCookies() == null ? new Cookie[0] : request.getCookies())

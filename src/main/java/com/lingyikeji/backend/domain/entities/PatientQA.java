@@ -18,24 +18,36 @@ public class PatientQA {
   @Expose(serialize = false)
   private String videoUrl;
 
-  public static PatientQA create(String q, String a, String videoUrl) {
-    return new PatientQA(q, a, videoUrl);
+  @Expose(serialize = false)
+  private String vrJsonUrl;
+
+  @Expose(serialize = false)
+  private String vrWavUrl;
+
+  public static PatientQA create(
+      String q, String a, String videoUrl, String vrJsonUrl, String vrWavUrl) {
+    return new PatientQA(q, a, videoUrl, vrJsonUrl, vrWavUrl);
   }
 
-  private PatientQA(String q, String a, String videoUrl) {
+  private PatientQA(String q, String a, String videoUrl, String vrJsonUrl, String vrWavUrl) {
     this.q = q;
     this.a = a;
     this.videoUrl = videoUrl;
+    this.vrJsonUrl = vrJsonUrl;
+    this.vrWavUrl = vrWavUrl;
   }
 
   public String getVideoUrl() {
-
     return "https://www.pixelgeom.com/livestream/lingyi/"
-        + videoUrl.substring(0, videoUrl.indexOf("."))
+        + this.videoUrl.substring(0, this.videoUrl.indexOf("."))
         + ".mp4";
   }
 
-  public String toString() {
-    return "{\"q\":\"" + q + "\",\"a\":\"" + a + "\"}";
+  public String getVrJsonUrl() {
+    return "https://www.pixelgeom.com/livestream/lingyi/vr/json/" + this.vrJsonUrl;
+  }
+
+  public String getVrWavUrl() {
+    return "https://www.pixelgeom.com/livestream/lingyi/vr/wav/" + this.vrWavUrl;
   }
 }

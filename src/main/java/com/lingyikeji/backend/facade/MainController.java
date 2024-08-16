@@ -173,4 +173,10 @@ public class MainController {
   public Resp chat(String conversationId, String question) {
     return Resp.success(applicationService.chat(conversationId, question));
   }
+
+  @PostMapping("/patientAddVrData")
+  public Resp patientAddVrData(String patientId) {
+    applicationService.patientAddVrData(patientId);
+    return Resp.success(true);
+  }
 }
