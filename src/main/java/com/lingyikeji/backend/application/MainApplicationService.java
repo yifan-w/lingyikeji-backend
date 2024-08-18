@@ -39,7 +39,7 @@ public class MainApplicationService {
   public MainApplicationService(
       DiseaseRepo diseaseRepo,
       ConversationRepo conversationRepo,
-      @Qualifier("openAILLMService") LLMService llmService,
+      @Qualifier("cozeLLMService") LLMService llmService,
       UserAuthRepo userAuthRepo,
       DepartmentRepo departmentRepo,
       PatientRepo patientRepo) {

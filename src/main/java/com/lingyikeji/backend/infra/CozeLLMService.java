@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-@Service
+@Service("cozeLLMService")
 public class CozeLLMService implements LLMService {
   private static final Logger logger = LogManager.getLogger(CozeLLMService.class);
   private static final String BOT_ID = "7393595533455736839";
@@ -46,6 +46,7 @@ public class CozeLLMService implements LLMService {
     StringBuilder stringBuilder = new StringBuilder();
     Object lock = new Object();
 
+    logger.info("Prompt to Coze: {}", prompt);
     eventStream.subscribe(
         content -> {
           if (StringUtils.equals(content.event(), "conversation.message.completed")) {
@@ -67,7 +68,10 @@ public class CozeLLMService implements LLMService {
       } catch (InterruptedException e) {
         logger.error(e);
       }
-      return stringBuilder.toString();
+
+      String response = stringBuilder.toString();
+      logger.info("OpenAI response: {}", response);
+      return response;
     }
   }
 }
