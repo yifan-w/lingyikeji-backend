@@ -73,6 +73,14 @@ public class MainApplicationService {
     return userAuthRepo.save(UserHashedPwd.create(userName, pwd));
   }
 
+  public void deleteUserAuth(String id) {
+    userAuthRepo.deleteById(id);
+  }
+
+  public List<UserHashedPwd> getAllUserAuth() {
+    return userAuthRepo.findAll();
+  }
+
   public boolean authUser(String userName, String pwd) {
     Optional<UserHashedPwd> userHashedPwdOptional =
         userAuthRepo.findUserHashedPwdByUserName(userName);

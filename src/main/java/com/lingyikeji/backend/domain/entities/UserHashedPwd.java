@@ -15,16 +15,18 @@ import lombok.Setter;
 public class UserHashedPwd extends BaseEntity {
   @Id private String id;
   private String userName;
+  private String unHashedPwd;
   private String hashedPwd;
 
   public static UserHashedPwd create(String userName, String unHashedPwd) {
-    return new UserHashedPwd(null, userName, HashUtils.doHash(unHashedPwd));
+    return new UserHashedPwd(null, userName, unHashedPwd, HashUtils.doHash(unHashedPwd));
   }
 
-  private UserHashedPwd(String id, String userName, String hashedPwd) {
+  private UserHashedPwd(String id, String userName, String unHashedPwd, String hashedPwd) {
     super();
     this.id = id;
     this.userName = userName;
+    this.unHashedPwd = unHashedPwd;
     this.hashedPwd = hashedPwd;
   }
 }

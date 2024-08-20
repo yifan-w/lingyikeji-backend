@@ -56,6 +56,17 @@ public class MainController {
     return Resp.success(Map.of("result", applicationService.createUserAuth(userName, pwd)));
   }
 
+  @PostMapping("/deleteUserAuth")
+  public Resp deleteUserAuth(String id) {
+    applicationService.deleteUserAuth(id);
+    return Resp.success(Map.of("result", true));
+  }
+
+  @GetMapping("/getAllUserAuth")
+  public Resp getAllUserAuth() {
+    return Resp.success(applicationService.getAllUserAuth());
+  }
+
   @PostMapping("/authUser")
   public Resp authUser(String userName, String pwd, HttpServletResponse response) {
     boolean authResult = applicationService.authUser(userName, pwd);

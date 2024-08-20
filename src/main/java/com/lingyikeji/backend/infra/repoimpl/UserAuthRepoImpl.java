@@ -5,8 +5,12 @@ import static dev.morphia.query.experimental.filters.Filters.eq;
 import com.lingyikeji.backend.domain.entities.UserHashedPwd;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
 import dev.morphia.Datastore;
+import dev.morphia.query.FindOptions;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 /** Created by Yifan Wang on 2024/7/30. */
@@ -21,8 +25,28 @@ public class UserAuthRepoImpl implements UserAuthRepo {
       return false;
     }
 
+    userHashedPwd.setUpdatedAt(LocalDateTime.now());
+    if (StringUtils.isEmpty(userHashedPwd.getId())) {
+      userHashedPwd.setCreatedAt(LocalDateTime.now());
+    }
     datastore.save(userHashedPwd);
     return true;
+  }
+
+  @Override
+  public void deleteById(String id) {
+    Optional<UserHashedPwd> userHashedPwdOptional =
+        Optional.ofNullable(datastore.find(UserHashedPwd.class).filter(eq("id", id)).first());
+    if (userHashedPwdOptional.isEmpty()) {
+      throw new RuntimeException("UserHashPwd " + id + " not found");
+    }
+
+    datastore.delete(userHashedPwdOptional.get());
+  }
+
+  @Override
+  public List<UserHashedPwd> findAll() {
+    return datastore.find(UserHashedPwd.class).iterator(new FindOptions()).toList();
   }
 
   @Override
