@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -27,13 +28,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Created by Yifan Wang on 2023/10/16. */
-@CrossOrigin("*")
 @RestController
 @RequiredArgsConstructor
 public class MainController {
@@ -57,13 +56,19 @@ public class MainController {
   }
 
   @PostMapping("/deleteUserAuth")
-  public Resp deleteUserAuth(String id) {
+  public Resp deleteUserAuth(@CookieValue("token") String token, String id) {
+    if (this.isNotAuthAdmin(token)) {
+      return Resp.success(Map.of("result", false));
+    }
     applicationService.deleteUserAuth(id);
     return Resp.success(Map.of("result", true));
   }
 
   @GetMapping("/getAllUserAuth")
-  public Resp getAllUserAuth() {
+  public Resp getAllUserAuth(@CookieValue("token") String token) {
+    if (this.isNotAuthAdmin(token)) {
+      return Resp.success(Map.of("result", false));
+    }
     return Resp.success(applicationService.getAllUserAuth());
   }
 
@@ -189,5 +194,9 @@ public class MainController {
   public Resp patientAddVrData(String patientId) {
     applicationService.patientAddVrData(patientId);
     return Resp.success(true);
+  }
+
+  private boolean isNotAuthAdmin(String token) {
+    return !Objects.equals(token, "9js52LsQxPyA078CqasXdtmJQTCCwe5wVDrUo3xEgB8=");
   }
 }
