@@ -70,7 +70,7 @@ public class CozeLLMService implements LLMService {
       }
 
       String response = stringBuilder.toString();
-      logger.info("OpenAI response: {}", response);
+      logger.info("Coze response: {}", response);
       return response;
     }
   }
