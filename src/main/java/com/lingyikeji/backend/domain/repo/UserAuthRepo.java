@@ -1,20 +1,20 @@
 package com.lingyikeji.backend.domain.repo;
 
-import com.lingyikeji.backend.domain.entities.UserHashedPwd;
+import com.lingyikeji.backend.domain.entities.User;
 import java.util.List;
 import java.util.Optional;
 
 /** Created by Yifan Wang on 2024/7/30. */
 public interface UserAuthRepo {
-  boolean save(UserHashedPwd userHashedPwd);
+  boolean save(User user);
 
   void deleteById(String id);
 
-  List<UserHashedPwd> findAll();
+  List<User> findAll();
 
-  Optional<UserHashedPwd> findUserHashedPwdByUserName(String userName);
+  Optional<User> findUserHashedPwdByUserName(String userName);
 
   Optional<String> findHashedPwdByUserName(String userName);
 
-  Optional<String> updateHashedPwdByUserName(UserHashedPwd userHashedPwd);
+  Optional<String> updateHashedPwdByUserName(User user);
 }

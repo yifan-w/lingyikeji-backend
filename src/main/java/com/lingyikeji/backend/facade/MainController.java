@@ -4,10 +4,12 @@ import com.lingyikeji.backend.application.MainApplicationService;
 import com.lingyikeji.backend.application.vo.Resp;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
+import com.lingyikeji.backend.domain.entities.User;
 import com.lingyikeji.backend.facade.vo.PatientVO;
 import com.lingyikeji.backend.utils.GsonUtils;
 import com.lingyikeji.backend.utils.HashUtils;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
@@ -193,6 +195,14 @@ public class MainController {
   @PostMapping("/patientAddVrData")
   public Resp patientAddVrData(String patientId) {
     applicationService.patientAddVrData(patientId);
+    return Resp.success(true);
+  }
+
+  @PostMapping("/feedback")
+  public Resp feedback(
+      String conversationId, int score, String message, HttpServletRequest request) {
+    User user = (User) request.getSession().getAttribute("user");
+    applicationService.feedback(user, conversationId, score, message);
     return Resp.success(true);
   }
 

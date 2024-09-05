@@ -7,7 +7,7 @@ import com.lingyikeji.backend.domain.entities.Disease;
 import com.lingyikeji.backend.domain.entities.Message;
 import com.lingyikeji.backend.domain.entities.Patient;
 import com.lingyikeji.backend.domain.entities.PatientQA;
-import com.lingyikeji.backend.domain.entities.UserHashedPwd;
+import com.lingyikeji.backend.domain.entities.User;
 import com.lingyikeji.backend.domain.repo.ConversationRepo;
 import com.lingyikeji.backend.domain.repo.DepartmentRepo;
 import com.lingyikeji.backend.domain.repo.DiseaseRepo;
@@ -70,27 +70,29 @@ public class MainApplicationService {
   }
 
   public boolean createUserAuth(String userName, String pwd) {
-    return userAuthRepo.save(UserHashedPwd.create(userName, pwd));
+    return userAuthRepo.save(User.create(userName, pwd));
   }
 
   public void deleteUserAuth(String id) {
     userAuthRepo.deleteById(id);
   }
 
-  public List<UserHashedPwd> getAllUserAuth() {
+  public User getUserByUserName(String userName) {
+    return userAuthRepo.findUserHashedPwdByUserName(userName).get();
+  }
+
+  public List<User> getAllUserAuth() {
     return userAuthRepo.findAll();
   }
 
   public boolean authUser(String userName, String pwd) {
-    Optional<UserHashedPwd> userHashedPwdOptional =
-        userAuthRepo.findUserHashedPwdByUserName(userName);
+    Optional<User> userHashedPwdOptional = userAuthRepo.findUserHashedPwdByUserName(userName);
     if (userHashedPwdOptional.isEmpty()) {
       return false;
     }
 
-    UserHashedPwd inputUserHashedPwd = UserHashedPwd.create(userName, pwd);
-    return StringUtils.equals(
-        userHashedPwdOptional.get().getHashedPwd(), inputUserHashedPwd.getHashedPwd());
+    User inputUser = User.create(userName, pwd);
+    return StringUtils.equals(userHashedPwdOptional.get().getHashedPwd(), inputUser.getHashedPwd());
   }
 
   public String createDepartment(String name, List<String> subDeptIds, List<String> patientIds) {
@@ -172,5 +174,14 @@ public class MainApplicationService {
 
   public String testLLM(String message) {
     return llmService.sendPrompt(message);
+  }
+
+  public void feedback(User user, String conversationId, int score, String message) {
+    logger.info(
+        "feedback userName: {}, conversationId: {}, score: {}, message: {}",
+        user.getUserName(),
+        conversationId,
+        score,
+        message);
   }
 }

@@ -2,7 +2,7 @@ package com.lingyikeji.backend.infra.repoimpl;
 
 import static dev.morphia.query.experimental.filters.Filters.eq;
 
-import com.lingyikeji.backend.domain.entities.UserHashedPwd;
+import com.lingyikeji.backend.domain.entities.User;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
 import dev.morphia.Datastore;
 import dev.morphia.query.FindOptions;
@@ -20,23 +20,23 @@ public class UserAuthRepoImpl implements UserAuthRepo {
   private final Datastore datastore;
 
   @Override
-  public boolean save(UserHashedPwd userHashedPwd) {
-    if (this.findUserHashedPwdByUserName(userHashedPwd.getUserName()).isPresent()) {
+  public boolean save(User user) {
+    if (this.findUserHashedPwdByUserName(user.getUserName()).isPresent()) {
       return false;
     }
 
-    userHashedPwd.setUpdatedAt(LocalDateTime.now());
-    if (StringUtils.isEmpty(userHashedPwd.getId())) {
-      userHashedPwd.setCreatedAt(LocalDateTime.now());
+    user.setUpdatedAt(LocalDateTime.now());
+    if (StringUtils.isEmpty(user.getId())) {
+      user.setCreatedAt(LocalDateTime.now());
     }
-    datastore.save(userHashedPwd);
+    datastore.save(user);
     return true;
   }
 
   @Override
   public void deleteById(String id) {
-    Optional<UserHashedPwd> userHashedPwdOptional =
-        Optional.ofNullable(datastore.find(UserHashedPwd.class).filter(eq("id", id)).first());
+    Optional<User> userHashedPwdOptional =
+        Optional.ofNullable(datastore.find(User.class).filter(eq("id", id)).first());
     if (userHashedPwdOptional.isEmpty()) {
       throw new RuntimeException("UserHashPwd " + id + " not found");
     }
@@ -45,32 +45,29 @@ public class UserAuthRepoImpl implements UserAuthRepo {
   }
 
   @Override
-  public List<UserHashedPwd> findAll() {
-    return datastore.find(UserHashedPwd.class).iterator(new FindOptions()).toList();
+  public List<User> findAll() {
+    return datastore.find(User.class).iterator(new FindOptions()).toList();
   }
 
   @Override
-  public Optional<UserHashedPwd> findUserHashedPwdByUserName(String userName) {
-    return Optional.ofNullable(
-        datastore.find(UserHashedPwd.class).filter(eq("userName", userName)).first());
+  public Optional<User> findUserHashedPwdByUserName(String userName) {
+    return Optional.ofNullable(datastore.find(User.class).filter(eq("userName", userName)).first());
   }
 
   @Override
   public Optional<String> findHashedPwdByUserName(String userName) {
-    return Optional.ofNullable(
-            datastore.find(UserHashedPwd.class).filter(eq("userName", userName)).first())
-        .map(UserHashedPwd::getHashedPwd);
+    return Optional.ofNullable(datastore.find(User.class).filter(eq("userName", userName)).first())
+        .map(User::getHashedPwd);
   }
 
   @Override
-  public Optional<String> updateHashedPwdByUserName(UserHashedPwd userHashedPwd) {
-    Optional<UserHashedPwd> userHashedPwdOptional =
-        this.findUserHashedPwdByUserName(userHashedPwd.getUserName());
+  public Optional<String> updateHashedPwdByUserName(User user) {
+    Optional<User> userHashedPwdOptional = this.findUserHashedPwdByUserName(user.getUserName());
     if (userHashedPwdOptional.isEmpty()) {
       return Optional.empty();
     }
 
-    userHashedPwdOptional.get().setHashedPwd(userHashedPwd.getHashedPwd());
+    userHashedPwdOptional.get().setHashedPwd(user.getHashedPwd());
     datastore.save(userHashedPwdOptional);
     return Optional.of(userHashedPwdOptional.get().getUserName());
   }
