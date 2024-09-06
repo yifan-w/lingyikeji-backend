@@ -45,7 +45,8 @@ public class HttpHandlerInterceptor implements HandlerInterceptor {
         GsonUtils.GSON.toJson(request.getParameterMap()),
         userName);
 
-    if (Objects.equals("/authUser", request.getRequestURI())) {
+    String uri = request.getRequestURI();
+    if (Objects.equals("/authUser", uri) || Objects.equals("/createUserAuth", uri)) {
       return true;
     }
 
@@ -53,7 +54,7 @@ public class HttpHandlerInterceptor implements HandlerInterceptor {
       return false;
     }
 
-    User user = mainApplicationService.getUserByUserName(userName);
+    User user = mainApplicationService.getUserByUserName(userName).get();
     request.getSession().setAttribute("user", user);
     return true;
   }

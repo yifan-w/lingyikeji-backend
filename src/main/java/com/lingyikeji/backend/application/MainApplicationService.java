@@ -1,6 +1,7 @@
 package com.lingyikeji.backend.application;
 
 import com.lingyikeji.backend.application.vo.ChatAnswerVO;
+import com.lingyikeji.backend.application.vo.UserVO;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
 import com.lingyikeji.backend.domain.entities.Disease;
@@ -69,30 +70,27 @@ public class MainApplicationService {
     patientRepo.save(patient);
   }
 
-  public boolean createUserAuth(String userName, String pwd) {
-    return userAuthRepo.save(User.create(userName, pwd));
+  public boolean createUserAuth(String userName, String pwd, String userType) {
+    return userAuthRepo.save(User.create(userName, pwd, userType));
   }
 
   public void deleteUserAuth(String id) {
     userAuthRepo.deleteById(id);
   }
 
-  public User getUserByUserName(String userName) {
-    return userAuthRepo.findUserHashedPwdByUserName(userName).get();
+  public Optional<User> getUserByUserName(String userName) {
+    return userAuthRepo.findUserHashedPwdByUserName(userName);
   }
 
   public List<User> getAllUserAuth() {
     return userAuthRepo.findAll();
   }
 
-  public boolean authUser(String userName, String pwd) {
-    Optional<User> userHashedPwdOptional = userAuthRepo.findUserHashedPwdByUserName(userName);
-    if (userHashedPwdOptional.isEmpty()) {
-      return false;
-    }
-
-    User inputUser = User.create(userName, pwd);
-    return StringUtils.equals(userHashedPwdOptional.get().getHashedPwd(), inputUser.getHashedPwd());
+  public Optional<UserVO> authUser(String userName, String pwd) {
+    return userAuthRepo
+        .findUserHashedPwdByUserName(userName)
+        .filter(user -> user.testPwd(pwd))
+        .map(UserVO::fromUser);
   }
 
   public String createDepartment(String name, List<String> subDeptIds, List<String> patientIds) {

@@ -2,6 +2,7 @@ package com.lingyikeji.backend.facade;
 
 import com.lingyikeji.backend.application.MainApplicationService;
 import com.lingyikeji.backend.application.vo.Resp;
+import com.lingyikeji.backend.application.vo.UserVO;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
 import com.lingyikeji.backend.domain.entities.User;
@@ -17,9 +18,11 @@ import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -53,8 +56,13 @@ public class MainController {
   private final MainApplicationService applicationService;
 
   @PostMapping("/createUserAuth")
-  public Resp createUserAuth(String userName, String pwd) {
-    return Resp.success(Map.of("result", applicationService.createUserAuth(userName, pwd)));
+  public Resp createUserAuth(String userName, String pwd, String userType) {
+    if (StringUtils.isEmpty(userType)) {
+      return Resp.success(Map.of("result", false));
+    }
+
+    return Resp.success(
+        Map.of("result", applicationService.createUserAuth(userName, pwd, userType)));
   }
 
   @PostMapping("/deleteUserAuth")
@@ -76,7 +84,10 @@ public class MainController {
 
   @PostMapping("/authUser")
   public Resp authUser(String userName, String pwd, HttpServletResponse response) {
-    boolean authResult = applicationService.authUser(userName, pwd);
+    Optional<UserVO> userOptional = applicationService.authUser(userName, pwd);
+    boolean authResult = userOptional.isPresent();
+    Map<String, Object> resultMap = new HashMap<>();
+    resultMap.put("result", authResult);
     if (authResult) {
       Cookie tokenCookie = new Cookie("token", HashUtils.doHash(userName));
       tokenCookie.setMaxAge(60 * 60 * 24 * 30);
@@ -84,8 +95,10 @@ public class MainController {
       Cookie userNameCookie = new Cookie("userName", userName);
       userNameCookie.setMaxAge(60 * 60 * 24 * 30);
       response.addCookie(userNameCookie);
+
+      resultMap.put("user", userOptional.get());
     }
-    return Resp.success(Map.of("result", authResult));
+    return Resp.success(resultMap);
   }
 
   @PostMapping("/createDept")
