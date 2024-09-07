@@ -124,6 +124,12 @@ public class MainApplicationService {
     return diseaseRepo.save(Disease.create(name, desc));
   }
 
+  public boolean exceedsConversationLimit(User user, int limit) {
+    return !user.isTest()
+        && conversationRepo.findByUserName(user.getUserName()).stream()
+            .anyMatch(conversation -> CollectionUtils.size(conversation.getMsgList()) < limit);
+  }
+
   public String createConversation(String userName, String deptId, String patientId, String msg) {
     Department department = departmentRepo.findById(deptId).get();
     Patient patient = patientRepo.findById(patientId).get();

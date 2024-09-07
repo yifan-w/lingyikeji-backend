@@ -10,6 +10,8 @@ public interface ConversationRepo {
 
   Optional<Conversation> findById(String id);
 
+  List<Conversation> findByUserName(String userName);
+
   List<Conversation> findAll();
 
   void deleteById(String id);

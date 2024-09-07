@@ -35,6 +35,15 @@ public class ConversationRepoImpl implements ConversationRepo {
   }
 
   @Override
+  public List<Conversation> findByUserName(String userName) {
+    return datastore
+        .find(Conversation.class)
+        .filter(eq("userName", userName))
+        .iterator(new FindOptions().sort(Sort.descending("createdAt")))
+        .toList();
+  }
+
+  @Override
   public List<Conversation> findAll() {
     return datastore
         .find(Conversation.class)

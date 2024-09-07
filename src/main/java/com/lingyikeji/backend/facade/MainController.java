@@ -142,9 +142,16 @@ public class MainController {
 
   @PostMapping("/createConversation")
   public Resp createConversation(
-      @CookieValue("userName") String userName, String deptId, String patientId, String msg) {
+      HttpServletRequest request, String deptId, String patientId, String msg) {
+    User user = (User) request.getSession().getAttribute("user");
+    if (applicationService.exceedsConversationLimit(user, 1)) {
+      return Resp.error("您已超出可创建问诊次数上限");
+    }
+
     return Resp.success(
-        Map.of("id", applicationService.createConversation(userName, deptId, patientId, msg)));
+        Map.of(
+            "id",
+            applicationService.createConversation(user.getUserName(), deptId, patientId, msg)));
   }
 
   @PostMapping("/createConversationV0")

@@ -19,6 +19,7 @@ public class User extends BaseEntity {
   private String unHashedPwd;
   private String hashedPwd;
   private UserType userType = UserType.PERSONAL;
+  private boolean isTest = true;
 
   private static enum UserType {
     PERSONAL,
@@ -28,17 +29,28 @@ public class User extends BaseEntity {
 
   public static User create(String userName, String unHashedPwd, String userType) {
     return new User(
-        null, userName, unHashedPwd, HashUtils.doHash(unHashedPwd), UserType.valueOf(userType));
+        null,
+        userName,
+        unHashedPwd,
+        HashUtils.doHash(unHashedPwd),
+        UserType.valueOf(userType),
+        false);
   }
 
   private User(
-      String id, String userName, String unHashedPwd, String hashedPwd, UserType userType) {
+      String id,
+      String userName,
+      String unHashedPwd,
+      String hashedPwd,
+      UserType userType,
+      boolean isTest) {
     super();
     this.id = id;
     this.userName = userName;
     this.unHashedPwd = unHashedPwd;
     this.hashedPwd = hashedPwd;
     this.userType = userType;
+    this.isTest = isTest;
   }
 
   public String getUserType() {
