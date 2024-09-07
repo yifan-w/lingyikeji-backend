@@ -10,15 +10,15 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class UserVO {
-  String userName;
+  String name;
   String type;
 
   public static UserVO fromUser(User user) {
     return new UserVO(user.getUserName(), user.getUserType());
   }
 
-  private UserVO(String userName, String type) {
-    this.userName = userName;
+  private UserVO(String name, String type) {
+    this.name = name;
     this.type = type;
   }
 }
