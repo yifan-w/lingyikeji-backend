@@ -1,6 +1,7 @@
 package com.lingyikeji.backend.application;
 
 import com.lingyikeji.backend.application.vo.ChatAnswerVO;
+import com.lingyikeji.backend.application.vo.ConversationVO;
 import com.lingyikeji.backend.application.vo.UserVO;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
@@ -142,8 +143,14 @@ public class MainApplicationService {
     return diseaseRepo.findById(id).orElseThrow();
   }
 
-  public Conversation getConversation(String id) {
-    return conversationRepo.findById(id).orElseThrow();
+  public ConversationVO getConversation(String id) {
+    return conversationRepo.findById(id).map(ConversationVO::fromConversation).orElseThrow();
+  }
+
+  public List<ConversationVO> getConversationsByUserName(User user) {
+    return conversationRepo.findByUserName(user.getUserName()).stream()
+        .map(ConversationVO::fromConversation)
+        .toList();
   }
 
   public String createPatient(String patientJson) {

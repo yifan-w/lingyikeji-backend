@@ -3,7 +3,6 @@ package com.lingyikeji.backend.facade;
 import com.lingyikeji.backend.application.MainApplicationService;
 import com.lingyikeji.backend.application.vo.Resp;
 import com.lingyikeji.backend.application.vo.UserVO;
-import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
 import com.lingyikeji.backend.domain.entities.User;
 import com.lingyikeji.backend.facade.vo.PatientVO;
@@ -175,9 +174,14 @@ public class MainController {
 
   @GetMapping("/getConversation")
   public Resp getConversation(String id) {
+    return Resp.success(Map.of("conversation", applicationService.getConversation(id)));
+  }
+
+  @GetMapping("/getConversationsByUserName")
+  public Resp getConversationsByUserName(HttpServletRequest request, String id) {
+    User user = (User) request.getSession().getAttribute("user");
     return Resp.success(
-        GsonUtils.GSON.fromJson(
-            GsonUtils.GSON.toJson(applicationService.getConversation(id)), Conversation.class));
+        Map.of("conversations", applicationService.getConversationsByUserName(user)));
   }
 
   @PostMapping("/createPatient")

@@ -54,8 +54,10 @@ public class HttpHandlerInterceptor implements HandlerInterceptor {
       return false;
     }
 
-    User user = mainApplicationService.getUserByUserName(userName).get();
-    request.getSession().setAttribute("user", user);
+    if (request.getSession().getAttribute("user") == null) {
+      User user = mainApplicationService.getUserByUserName(userName).get();
+      request.getSession().setAttribute("user", user);
+    }
     return true;
   }
 
