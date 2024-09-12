@@ -2,6 +2,7 @@ package com.lingyikeji.backend.domain.entities;
 
 import com.google.gson.annotations.Expose;
 import dev.morphia.annotations.Embedded;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -44,10 +45,14 @@ public class PatientQA {
   }
 
   public String getVrJsonUrl() {
-    return "https://www.pixelgeom.com/livestream/lingyi/vr/json/" + this.vrJsonUrl;
+    return Optional.ofNullable(this.vrJsonUrl)
+        .map(jsonUrl -> "https://www.pixelgeom.com/livestream/lingyi/vr/json/" + jsonUrl)
+        .orElse(null);
   }
 
   public String getVrWavUrl() {
-    return "https://www.pixelgeom.com/livestream/lingyi/vr/wav/" + this.vrWavUrl;
+    return Optional.ofNullable(this.vrWavUrl)
+        .map(wavUrl -> "https://www.pixelgeom.com/livestream/lingyi/vr/wav/" + wavUrl)
+        .orElse(null);
   }
 }

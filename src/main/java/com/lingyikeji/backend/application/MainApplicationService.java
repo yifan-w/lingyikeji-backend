@@ -6,6 +6,7 @@ import com.lingyikeji.backend.application.vo.UserVO;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
 import com.lingyikeji.backend.domain.entities.Disease;
+import com.lingyikeji.backend.domain.entities.Feedback;
 import com.lingyikeji.backend.domain.entities.Message;
 import com.lingyikeji.backend.domain.entities.Patient;
 import com.lingyikeji.backend.domain.entities.PatientQA;
@@ -13,6 +14,7 @@ import com.lingyikeji.backend.domain.entities.User;
 import com.lingyikeji.backend.domain.repo.ConversationRepo;
 import com.lingyikeji.backend.domain.repo.DepartmentRepo;
 import com.lingyikeji.backend.domain.repo.DiseaseRepo;
+import com.lingyikeji.backend.domain.repo.FeedbackRepo;
 import com.lingyikeji.backend.domain.repo.PatientRepo;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
 import com.lingyikeji.backend.infra.gateway.LLMService;
@@ -37,6 +39,7 @@ public class MainApplicationService {
   private final UserAuthRepo userAuthRepo;
   private final DepartmentRepo departmentRepo;
   private final PatientRepo patientRepo;
+  private final FeedbackRepo feedbackRepo;
 
   public MainApplicationService(
       DiseaseRepo diseaseRepo,
@@ -44,13 +47,15 @@ public class MainApplicationService {
       @Qualifier("cozeLLMService") LLMService llmService,
       UserAuthRepo userAuthRepo,
       DepartmentRepo departmentRepo,
-      PatientRepo patientRepo) {
+      PatientRepo patientRepo,
+      FeedbackRepo feedbackRepo) {
     this.diseaseRepo = diseaseRepo;
     this.conversationRepo = conversationRepo;
     this.llmService = llmService;
     this.userAuthRepo = userAuthRepo;
     this.departmentRepo = departmentRepo;
     this.patientRepo = patientRepo;
+    this.feedbackRepo = feedbackRepo;
   }
 
   public void patientAddVrData(String patientId) {
@@ -178,8 +183,8 @@ public class MainApplicationService {
             .filter(patientQA -> patientQA.getA().contains(answer))
             .findFirst();
     String video = patientQAOptional.map(PatientQA::getVideoUrl).orElse("");
-    String vrJson = patientQAOptional.map(PatientQA::getVrJsonUrl).orElse("");
-    String vrWav = patientQAOptional.map(PatientQA::getVrWavUrl).orElse("");
+    String vrJson = patientQAOptional.map(PatientQA::getVrJsonUrl).orElse(null);
+    String vrWav = patientQAOptional.map(PatientQA::getVrWavUrl).orElse(null);
     return ChatAnswerVO.create(answer, video, vrJson, vrWav);
   }
 
@@ -187,12 +192,17 @@ public class MainApplicationService {
     return llmService.sendPrompt(message);
   }
 
-  public void feedback(User user, String conversationId, int score, String message) {
+  public String feedback(User user, String conversationId, int score, String message) {
     logger.info(
         "feedback userName: {}, conversationId: {}, score: {}, message: {}",
         user.getUserName(),
         conversationId,
         score,
         message);
+    Conversation conversation =
+        StringUtils.isEmpty(conversationId)
+            ? null
+            : conversationRepo.findById(conversationId).get();
+    return feedbackRepo.save(Feedback.create(user.getUserName(), score, conversation, message));
   }
 }

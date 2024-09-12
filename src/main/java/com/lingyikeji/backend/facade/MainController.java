@@ -236,8 +236,8 @@ public class MainController {
   public Resp feedback(
       String conversationId, int score, String message, HttpServletRequest request) {
     User user = (User) request.getSession().getAttribute("user");
-    applicationService.feedback(user, conversationId, score, message);
-    return Resp.success(true);
+    return Resp.success(
+        Map.of("id", applicationService.feedback(user, conversationId, score, message)));
   }
 
   private boolean isNotAuthAdmin(String token) {
