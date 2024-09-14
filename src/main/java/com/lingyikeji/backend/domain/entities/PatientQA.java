@@ -1,6 +1,5 @@
 package com.lingyikeji.backend.domain.entities;
 
-import com.google.gson.annotations.Expose;
 import dev.morphia.annotations.Embedded;
 import java.util.Optional;
 import lombok.Getter;
@@ -13,24 +12,21 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class PatientQA {
+  private String l1Category;
   private String q;
   private String a;
-
-  @Expose(serialize = false)
   private String videoUrl;
-
-  @Expose(serialize = false)
   private String vrJsonUrl;
-
-  @Expose(serialize = false)
   private String vrWavUrl;
 
   public static PatientQA create(
-      String q, String a, String videoUrl, String vrJsonUrl, String vrWavUrl) {
-    return new PatientQA(q, a, videoUrl, vrJsonUrl, vrWavUrl);
+      String l1Category, String q, String a, String videoUrl, String vrJsonUrl, String vrWavUrl) {
+    return new PatientQA(l1Category, q, a, videoUrl, vrJsonUrl, vrWavUrl);
   }
 
-  private PatientQA(String q, String a, String videoUrl, String vrJsonUrl, String vrWavUrl) {
+  private PatientQA(
+      String l1Category, String q, String a, String videoUrl, String vrJsonUrl, String vrWavUrl) {
+    this.l1Category = l1Category;
     this.q = q;
     this.a = a;
     this.videoUrl = videoUrl;

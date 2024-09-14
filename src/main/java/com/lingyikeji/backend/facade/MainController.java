@@ -189,6 +189,11 @@ public class MainController {
     return Resp.success(Map.of("id", applicationService.createPatient(patientJson)));
   }
 
+  @PostMapping("/updatePatient")
+  public Resp updatePatient(String id, String patientJson) {
+    return Resp.success(Map.of("result", applicationService.updatePatient(id, patientJson)));
+  }
+
   @GetMapping("/getLivestream")
   public ResponseEntity<Resource> getLivestream(String id) {
     String m3u8Content = MessageFormat.format(STATIC_M3U8, id);
@@ -238,6 +243,11 @@ public class MainController {
     User user = (User) request.getSession().getAttribute("user");
     return Resp.success(
         Map.of("id", applicationService.feedback(user, conversationId, score, message)));
+  }
+
+  @GetMapping("/getConversationStats")
+  public Resp getConversationStats(String conversationId) {
+    return Resp.success(Map.of("stats", applicationService.getConversationStats(conversationId)));
   }
 
   private boolean isNotAuthAdmin(String token) {

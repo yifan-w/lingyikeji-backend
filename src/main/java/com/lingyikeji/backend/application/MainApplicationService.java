@@ -1,6 +1,7 @@
 package com.lingyikeji.backend.application;
 
 import com.lingyikeji.backend.application.vo.ChatAnswerVO;
+import com.lingyikeji.backend.application.vo.ConversationStatsVO;
 import com.lingyikeji.backend.application.vo.ConversationVO;
 import com.lingyikeji.backend.application.vo.UserVO;
 import com.lingyikeji.backend.domain.entities.Conversation;
@@ -18,6 +19,7 @@ import com.lingyikeji.backend.domain.repo.FeedbackRepo;
 import com.lingyikeji.backend.domain.repo.PatientRepo;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
 import com.lingyikeji.backend.infra.gateway.LLMService;
+import com.lingyikeji.backend.infra.gateway.dto.PatientQADTO;
 import com.lingyikeji.backend.utils.GsonUtils;
 import java.util.Collections;
 import java.util.List;
@@ -131,9 +133,11 @@ public class MainApplicationService {
   }
 
   public boolean exceedsConversationLimit(User user, int limit) {
-    return !user.isTest()
-        && conversationRepo.findByUserName(user.getUserName()).stream()
-            .anyMatch(conversation -> CollectionUtils.size(conversation.getMsgList()) < limit);
+    if (user.isTest()) {
+      return false;
+    }
+    return conversationRepo.findByUserName(user.getUserName()).stream()
+        .anyMatch(conversation -> CollectionUtils.size(conversation.getMsgList()) < limit);
   }
 
   public String createConversation(String userName, String deptId, String patientId, String msg) {
@@ -168,7 +172,8 @@ public class MainApplicationService {
     Patient patient = conversation.getPatient();
     logger.info("patient id for conversation {}: {}", conversationId, patient.getId());
     String prompt =
-        GsonUtils.GSON.toJson(patient.getPatientQAList())
+        GsonUtils.GSON.toJson(
+                patient.getPatientQAList().stream().map(PatientQADTO::fromPatientQA).toList())
             + "以上是一个json对象数组，记录了一个医生和一个病人的对话，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会作为医生提一个问题，请你作为病人考虑从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
             + "问："
             + question;
@@ -182,10 +187,21 @@ public class MainApplicationService {
         patient.getPatientQAList().stream()
             .filter(patientQA -> patientQA.getA().contains(answer))
             .findFirst();
-    String video = patientQAOptional.map(PatientQA::getVideoUrl).orElse("");
-    String vrJson = patientQAOptional.map(PatientQA::getVrJsonUrl).orElse(null);
-    String vrWav = patientQAOptional.map(PatientQA::getVrWavUrl).orElse(null);
-    return ChatAnswerVO.create(answer, video, vrJson, vrWav);
+
+    if (patientQAOptional.isPresent()) {
+      PatientQA patientQA = patientQAOptional.get();
+      return ChatAnswerVO.create(
+          answer, patientQA.getVideoUrl(), patientQA.getVrJsonUrl(), patientQA.getVrWavUrl());
+    }
+
+    String nonStandardPrompt =
+        patient.getDesc()
+            + "\n以上是一个病人的病历，接下来我会作为医生提一个问题，如果这个问题作为医生来问不合适或者莫名其妙，请回答“请按照问诊标准进行提问”；否则，请你用病人的语气根据以上病历内容酌情做出合理的问诊答复。\n"
+            + "问："
+            + question;
+    String nonStandardAnswer = this.testLLM(nonStandardPrompt);
+
+    return ChatAnswerVO.create(nonStandardAnswer, "", null, null);
   }
 
   public String testLLM(String message) {
@@ -204,5 +220,23 @@ public class MainApplicationService {
             ? null
             : conversationRepo.findById(conversationId).get();
     return feedbackRepo.save(Feedback.create(user.getUserName(), score, conversation, message));
+  }
+
+  public boolean updatePatient(String id, String patientJson) {
+    Optional<Patient> patientOptional = patientRepo.findById(id);
+    if (patientOptional.isEmpty()) {
+      return false;
+    }
+
+    Patient patient = patientOptional.get();
+    Patient inputPatient = GsonUtils.GSON.fromJson(patientJson, Patient.class);
+    patient.updateWith(inputPatient);
+    patientRepo.save(patient);
+    return true;
+  }
+
+  public ConversationStatsVO getConversationStats(String conversationId) {
+    Conversation conversation = conversationRepo.findById(conversationId).get();
+    return ConversationStatsVO.fromConversationStats(conversation.generateStats());
   }
 }

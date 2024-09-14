@@ -54,4 +54,13 @@ public class Conversation extends BaseEntity {
   public void addPatientMsg(String msg) {
     msgList.add(Message.fromPatient(msg));
   }
+
+  public ConversationStats generateStats() {
+    ConversationStats conversationStats = new ConversationStats(this);
+    msgList.stream()
+        .filter(Message::fromPatient)
+        .map(Message::getContent)
+        .forEach(conversationStats::recordPatientChat);
+    return conversationStats;
+  }
 }
