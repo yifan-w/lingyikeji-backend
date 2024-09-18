@@ -13,19 +13,27 @@ public class CategoryStats {
   private int totalChatCount = 0;
   private int uniqueChatCount = 0;
   private int duplicateChatCount = 0;
-  private Set<String> uniqueMsgSet = new HashSet<>();
+  private Set<String> uniquePatientQuestions = new HashSet<>();
+  private Set<String> uniqueQuestions = new HashSet<>();
+  private Set<String> uniqueAnswers = new HashSet<>();
 
-  public CategoryStats(String l1Category) {
+  public CategoryStats(Set<String> uniquePatientQuestions, String l1Category) {
+    this.uniquePatientQuestions = uniquePatientQuestions;
     this.l1Category = l1Category;
   }
 
-  public void recordPatientChat(String content) {
-    ++totalChatCount;
-    if (uniqueMsgSet.contains(content)) {
-      ++duplicateChatCount;
+  public void recordChat(Message msg) {
+    String content = msg.getContent();
+    if (msg.fromPatient()) {
+      ++totalChatCount;
+      if (uniqueAnswers.contains(content)) {
+        ++duplicateChatCount;
+      } else {
+        uniqueAnswers.add(content);
+        ++uniqueChatCount;
+      }
     } else {
-      uniqueMsgSet.add(content);
-      ++uniqueChatCount;
+      uniqueQuestions.add(content);
     }
   }
 }

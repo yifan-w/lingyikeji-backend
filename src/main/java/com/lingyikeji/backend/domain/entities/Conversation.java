@@ -57,10 +57,7 @@ public class Conversation extends BaseEntity {
 
   public ConversationStats generateStats() {
     ConversationStats conversationStats = new ConversationStats(this);
-    msgList.stream()
-        .filter(Message::fromPatient)
-        .map(Message::getContent)
-        .forEach(conversationStats::recordPatientChat);
+    msgList.forEach(conversationStats::recordChat);
     return conversationStats;
   }
 }
