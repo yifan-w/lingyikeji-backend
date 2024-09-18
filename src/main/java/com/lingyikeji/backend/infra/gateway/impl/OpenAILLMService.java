@@ -1,7 +1,8 @@
-package com.lingyikeji.backend.infra;
+package com.lingyikeji.backend.infra.gateway.impl;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.lingyikeji.backend.domain.entities.Patient;
 import com.lingyikeji.backend.infra.gateway.HttpService;
 import com.lingyikeji.backend.infra.gateway.LLMService;
 import com.lingyikeji.backend.infra.gateway.OpenAIChatBody;
@@ -21,6 +22,11 @@ public class OpenAILLMService implements LLMService {
   private static final Map<String, String> HEADERS =
       Map.of("Authorization", "Bearer " + TOKEN, "Content-Type", "application/json");
   private final HttpService httpService;
+
+  @Override
+  public String askPatientQuestion(Patient patient, String question) {
+    throw new UnsupportedOperationException();
+  }
 
   @Override
   public String sendPrompt(String prompt) {

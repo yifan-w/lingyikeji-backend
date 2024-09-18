@@ -1,10 +1,13 @@
-package com.lingyikeji.backend.infra;
+package com.lingyikeji.backend.infra.gateway.impl;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.lingyikeji.backend.domain.entities.Patient;
 import com.lingyikeji.backend.infra.gateway.CozeChatBody;
 import com.lingyikeji.backend.infra.gateway.CozeChatMessage;
 import com.lingyikeji.backend.infra.gateway.LLMService;
+import com.lingyikeji.backend.infra.gateway.dto.CozeAskQuestionDTO;
+import com.lingyikeji.backend.utils.GsonUtils;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -33,6 +36,11 @@ public class CozeLLMService implements LLMService {
           .build();
 
   @Override
+  public String askPatientQuestion(Patient patient, String question) {
+    return this.sendPrompt(GsonUtils.GSON.toJson(CozeAskQuestionDTO.create(patient, question)));
+  }
+
+  @Override
   public String sendPrompt(String prompt) {
     ParameterizedTypeReference<ServerSentEvent<String>> type =
         new ParameterizedTypeReference<ServerSentEvent<String>>() {};
@@ -52,10 +60,11 @@ public class CozeLLMService implements LLMService {
           if (StringUtils.equals(content.event(), "conversation.message.completed")) {
             JsonObject jsonObject = JsonParser.parseString(content.data()).getAsJsonObject();
             if (StringUtils.equals(jsonObject.get("type").getAsString(), "answer")) {
+              logger.info("Coze content: {}", content.data());
               stringBuilder.append(jsonObject.get("content").getAsString());
-            }
-            synchronized (lock) {
-              lock.notifyAll();
+              synchronized (lock) {
+                lock.notifyAll();
+              }
             }
           }
         },

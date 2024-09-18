@@ -19,7 +19,6 @@ import com.lingyikeji.backend.domain.repo.FeedbackRepo;
 import com.lingyikeji.backend.domain.repo.PatientRepo;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
 import com.lingyikeji.backend.infra.gateway.LLMService;
-import com.lingyikeji.backend.infra.gateway.dto.PatientQADTO;
 import com.lingyikeji.backend.utils.GsonUtils;
 import java.util.Collections;
 import java.util.List;
@@ -171,6 +170,7 @@ public class MainApplicationService {
     Conversation conversation = conversationRepo.findById(conversationId).get();
     Patient patient = conversation.getPatient();
     logger.info("patient id for conversation {}: {}", conversationId, patient.getId());
+    /*
     String prompt =
         GsonUtils.GSON.toJson(
                 patient.getPatientQAList().stream().map(PatientQADTO::fromPatientQA).toList())
@@ -178,6 +178,8 @@ public class MainApplicationService {
             + "问："
             + question;
     String answer = this.testLLM(prompt);
+     */
+    String answer = llmService.askPatientQuestion(patient, question);
 
     conversation.addUserMsg(question);
     conversation.addPatientMsg(answer);
