@@ -195,15 +195,7 @@ public class MainApplicationService {
       return ChatAnswerVO.create(
           answer, patientQA.getVideoUrl(), patientQA.getVrJsonUrl(), patientQA.getVrWavUrl());
     }
-
-    String nonStandardPrompt =
-        patient.getDesc()
-            + "\n以上是一个病人的病历，接下来我会作为医生提一个问题，如果这个问题作为医生来问不合适或者莫名其妙，请回答“请按照问诊标准进行提问”；否则，请你用病人的语气根据以上病历内容酌情做出合理的问诊答复。\n"
-            + "问："
-            + question;
-    String nonStandardAnswer = this.testLLM(nonStandardPrompt);
-
-    return ChatAnswerVO.create(nonStandardAnswer, "", null, null);
+    return ChatAnswerVO.create(answer, patient.getSilentVideoUrl(), null, null);
   }
 
   public String testLLM(String message) {
