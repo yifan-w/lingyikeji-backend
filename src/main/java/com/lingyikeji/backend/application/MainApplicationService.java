@@ -45,7 +45,7 @@ public class MainApplicationService {
   public MainApplicationService(
       DiseaseRepo diseaseRepo,
       ConversationRepo conversationRepo,
-      @Qualifier("cozeLLMService") LLMService llmService,
+      @Qualifier("openAILLMService") LLMService llmService,
       UserAuthRepo userAuthRepo,
       DepartmentRepo departmentRepo,
       PatientRepo patientRepo,
@@ -170,15 +170,17 @@ public class MainApplicationService {
     Conversation conversation = conversationRepo.findById(conversationId).get();
     Patient patient = conversation.getPatient();
     logger.info("patient id for conversation {}: {}", conversationId, patient.getId());
-    /*
-    String prompt =
-        GsonUtils.GSON.toJson(
-                patient.getPatientQAList().stream().map(PatientQADTO::fromPatientQA).toList())
-            + "以上是一个json对象数组，记录了一个医生和一个病人的对话，每一个对象的q属性代表一个问题，a属性代表一个回复。接下来我会作为医生提一个问题，请你作为病人考虑从json对象数组中选择一个与我提的问题最为相似的问题并回答我对应的回复，回答内容不要包含问题本身，回答末尾不要自行添加标点符号。如果没有任何相似的问题，请回答“请按照问诊标准进行提问”。\n"
-            + "问："
-            + question;
-    String answer = this.testLLM(prompt);
-     */
+    // test results
+    if (question.contains("胸片") || question.contains("听诊")) {
+      conversation.addUserMsg(question);
+      conversationRepo.save(conversation);
+
+      return question.contains("胸片")
+          ? ChatAnswerVO.createExamResults(
+              "chestXrayImg", patient.getTestResults().get("chestXrayImg"))
+          : ChatAnswerVO.createExamResults(
+              "chestSoundAudio", patient.getTestResults().get("chestSoundAudio"));
+    }
     String answer = llmService.askPatientQuestion(patient, question);
 
     conversation.addUserMsg(question);
@@ -195,6 +197,23 @@ public class MainApplicationService {
       return ChatAnswerVO.create(
           answer, patientQA.getVideoUrl(), patientQA.getVrJsonUrl(), patientQA.getVrWavUrl());
     }
+
+    if (StringUtils.isNotEmpty(patient.getDesc())) {
+      String prompt =
+          "#角色\n"
+              + "你是一位专业的医疗领域标准问诊病人，下面提供了你的“原始病历”和“当前医生提问”，请理解你自己的“原始病历”，并遵循“任务”逻辑，合理回复“当前医生提问”\n"
+              + "#原始病历\n"
+              + patient.getDesc()
+              + "\n#任务\n"
+              + "首先理解你自己的“原始病历”，深刻熟悉自己的基本信息和病情等病历信息；然后针对“当前医生提问”，从“原始病历”中寻找相关信息，若在“原始病历”中能找到“当前医生提问”的相关信息，那么一步步思考做出合理的回复，若是找不到相关信息，那么请回复“请询问病情相关信息”。\n"
+              + "切记要么输出病人回复内容，要么输出请询问病情相关信息，不要输出其他任何无关内容。\n"
+              + "#当前医生提问\n"
+              + question
+              + "\n#病人回复";
+      return ChatAnswerVO.create(
+          llmService.sendPrompt(prompt), patient.getSilentVideoUrl(), null, null);
+    }
+
     return ChatAnswerVO.create(answer, patient.getSilentVideoUrl(), null, null);
   }
 

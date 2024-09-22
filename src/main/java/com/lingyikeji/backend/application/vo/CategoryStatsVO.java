@@ -14,7 +14,7 @@ public class CategoryStatsVO {
   private int totalCount;
   private int uniqueCount;
   private int duplicateCount;
-  private String questionHitRatio = "";
+  private String questionHitRatio = "0%";
   private List<String> hintQuestions = new LinkedList<>();
   private List<String> historyQuestions = new LinkedList<>();
   private List<String> msgList = new LinkedList<>();
@@ -25,6 +25,7 @@ public class CategoryStatsVO {
         stats.getTotalChatCount(),
         stats.getUniqueChatCount(),
         stats.getDuplicateChatCount(),
+        stats.getUniquePatientAnswerCount(),
         new LinkedList<>(stats.getUniquePatientQuestions()),
         new LinkedList<>(stats.getUniqueQuestions()),
         new LinkedList<>(stats.getUniqueAnswers()));
@@ -35,6 +36,7 @@ public class CategoryStatsVO {
       int totalCount,
       int uniqueCount,
       int duplicateCount,
+      int uniquePatientAnswerCount,
       List<String> hintQuestions,
       List<String> historyQuestions,
       List<String> msgList) {
@@ -45,9 +47,9 @@ public class CategoryStatsVO {
     this.hintQuestions = hintQuestions;
     this.historyQuestions = historyQuestions;
     this.msgList = msgList;
-    this.questionHitRatio =
-        uniqueCount == 0
-            ? "0%"
-            : String.format("%.2f", 100.0 * uniqueCount / hintQuestions.size()) + "%";
+    if (uniqueCount > 0) {
+      this.questionHitRatio =
+          String.format("%.2f", 100.0 * uniqueCount / uniquePatientAnswerCount) + "%";
+    }
   }
 }

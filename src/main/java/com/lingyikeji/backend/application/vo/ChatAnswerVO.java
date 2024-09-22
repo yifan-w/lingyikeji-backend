@@ -1,7 +1,6 @@
 package com.lingyikeji.backend.application.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.Collections;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +14,7 @@ public class ChatAnswerVO {
   private String video;
   private String vrJson;
   private String vrWav;
-  private Map<String, String> testResults = Collections.emptyMap();
+  private Map<String, String> testResults;
 
   public static ChatAnswerVO create(String answer, String video, String vrJson, String vrWav) {
     return new ChatAnswerVO(answer, video, vrJson, vrWav);

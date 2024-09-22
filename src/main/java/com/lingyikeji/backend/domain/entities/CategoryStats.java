@@ -12,13 +12,16 @@ public class CategoryStats {
   private String l1Category;
   private int totalChatCount = 0;
   private int uniqueChatCount = 0;
+  private int uniquePatientAnswerCount = 0;
   private int duplicateChatCount = 0;
   private Set<String> uniquePatientQuestions = new HashSet<>();
   private Set<String> uniqueQuestions = new HashSet<>();
   private Set<String> uniqueAnswers = new HashSet<>();
 
-  public CategoryStats(Set<String> uniquePatientQuestions, String l1Category) {
+  public CategoryStats(
+      Set<String> uniquePatientQuestions, int uniquePatientAnswerCount, String l1Category) {
     this.uniquePatientQuestions = uniquePatientQuestions;
+    this.uniquePatientAnswerCount = uniquePatientAnswerCount;
     this.l1Category = l1Category;
   }
 
