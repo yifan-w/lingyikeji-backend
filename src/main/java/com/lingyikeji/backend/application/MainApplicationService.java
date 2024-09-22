@@ -1,5 +1,6 @@
 package com.lingyikeji.backend.application;
 
+import com.google.gson.JsonParser;
 import com.lingyikeji.backend.application.vo.ChatAnswerVO;
 import com.lingyikeji.backend.application.vo.ConversationStatsVO;
 import com.lingyikeji.backend.application.vo.ConversationVO;
@@ -18,10 +19,16 @@ import com.lingyikeji.backend.domain.repo.DiseaseRepo;
 import com.lingyikeji.backend.domain.repo.FeedbackRepo;
 import com.lingyikeji.backend.domain.repo.PatientRepo;
 import com.lingyikeji.backend.domain.repo.UserAuthRepo;
+import com.lingyikeji.backend.infra.gateway.HttpService;
 import com.lingyikeji.backend.infra.gateway.LLMService;
+import com.lingyikeji.backend.infra.gateway.dto.TTSDTO;
 import com.lingyikeji.backend.utils.GsonUtils;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +43,7 @@ public class MainApplicationService {
   private static final Logger logger = LogManager.getLogger(MainApplicationService.class);
   private final DiseaseRepo diseaseRepo;
   private final ConversationRepo conversationRepo;
+  private final HttpService httpService;
   private final LLMService llmService;
   private final UserAuthRepo userAuthRepo;
   private final DepartmentRepo departmentRepo;
@@ -45,6 +53,7 @@ public class MainApplicationService {
   public MainApplicationService(
       DiseaseRepo diseaseRepo,
       ConversationRepo conversationRepo,
+      HttpService httpService,
       @Qualifier("openAILLMService") LLMService llmService,
       UserAuthRepo userAuthRepo,
       DepartmentRepo departmentRepo,
@@ -52,6 +61,7 @@ public class MainApplicationService {
       FeedbackRepo feedbackRepo) {
     this.diseaseRepo = diseaseRepo;
     this.conversationRepo = conversationRepo;
+    this.httpService = httpService;
     this.llmService = llmService;
     this.userAuthRepo = userAuthRepo;
     this.departmentRepo = departmentRepo;
@@ -195,7 +205,7 @@ public class MainApplicationService {
     if (patientQAOptional.isPresent()) {
       PatientQA patientQA = patientQAOptional.get();
       return ChatAnswerVO.create(
-          answer, patientQA.getVideoUrl(), patientQA.getVrJsonUrl(), patientQA.getVrWavUrl());
+          answer, patientQA.getVideoUrl(), patientQA.getVrJsonUrl(), patientQA.getVrWavUrl(), null);
     }
 
     if (StringUtils.isNotEmpty(patient.getDesc())) {
@@ -210,11 +220,39 @@ public class MainApplicationService {
               + "#当前医生提问\n"
               + question
               + "\n#病人回复";
+
+      String generatedAnswer = llmService.sendPrompt(prompt);
+      String genAudio = null;
+
+      if (!generatedAnswer.contains("请询问病情相关信息")) {
+        TTSDTO ttsdto = new TTSDTO(generatedAnswer, patient.getSex() == Patient.Sex.MALE);
+        String resp =
+            httpService.doPost(
+                "https://openspeech.bytedance.com/api/v1/tts",
+                Map.of("Authorization", "Bearer;m1REPwhn__BL6EIM96iXqbmnTzSxnYTU"),
+                ttsdto);
+        String base64String =
+            JsonParser.parseString(resp).getAsJsonObject().get("data").getAsString();
+        String fileName = conversationId + "-" + System.currentTimeMillis() + ".mp3";
+
+        String filePath =
+            // "/Users/wangyifan/Downloads/"
+            "/usr/share/nginx/livestream/tmp/" + fileName;
+
+        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+          byte[] decoder = Base64.getDecoder().decode(base64String);
+          fos.write(decoder);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+        genAudio = "https://www.pixelgeom.com/livestream/lingyi/tmp/" + fileName;
+      }
+
       return ChatAnswerVO.create(
-          llmService.sendPrompt(prompt), patient.getSilentVideoUrl(), null, null);
+          generatedAnswer, patient.getSilentVideoUrl(), null, null, genAudio);
     }
 
-    return ChatAnswerVO.create(answer, patient.getSilentVideoUrl(), null, null);
+    return ChatAnswerVO.create(answer, patient.getSilentVideoUrl(), null, null, null);
   }
 
   public String testLLM(String message) {

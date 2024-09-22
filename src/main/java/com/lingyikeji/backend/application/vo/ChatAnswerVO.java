@@ -14,10 +14,12 @@ public class ChatAnswerVO {
   private String video;
   private String vrJson;
   private String vrWav;
+  private String genAudio;
   private Map<String, String> testResults;
 
-  public static ChatAnswerVO create(String answer, String video, String vrJson, String vrWav) {
-    return new ChatAnswerVO(answer, video, vrJson, vrWav);
+  public static ChatAnswerVO create(
+      String answer, String video, String vrJson, String vrWav, String genAudio) {
+    return new ChatAnswerVO(answer, video, vrJson, vrWav, genAudio);
   }
 
   public static ChatAnswerVO createExamResults(String examName, String examResult) {
@@ -25,11 +27,12 @@ public class ChatAnswerVO {
     return new ChatAnswerVO(results);
   }
 
-  public ChatAnswerVO(String answer, String video, String vrJson, String vrWav) {
+  public ChatAnswerVO(String answer, String video, String vrJson, String vrWav, String genAudio) {
     this.answer = answer;
     this.video = video;
     this.vrJson = vrJson;
     this.vrWav = vrWav;
+    this.genAudio = genAudio;
   }
 
   private ChatAnswerVO(Map<String, String> testResults) {
