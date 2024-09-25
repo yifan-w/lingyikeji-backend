@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import com.lingyikeji.backend.application.vo.ChatAnswerVO;
 import com.lingyikeji.backend.application.vo.ConversationStatsVO;
 import com.lingyikeji.backend.application.vo.ConversationVO;
+import com.lingyikeji.backend.application.vo.DiseaseOptionVO;
 import com.lingyikeji.backend.application.vo.UserVO;
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Department;
@@ -142,11 +143,15 @@ public class MainApplicationService {
   }
 
   public boolean exceedsConversationLimit(User user, int limit) {
+    return false;
+    /*
     if (user.isTest()) {
       return false;
     }
     return conversationRepo.findByUserName(user.getUserName()).stream()
         .anyMatch(conversation -> CollectionUtils.size(conversation.getMsgList()) < limit);
+
+     */
   }
 
   public String createConversation(String userName, String deptId, String patientId, String msg) {
@@ -208,6 +213,11 @@ public class MainApplicationService {
           answer, patientQA.getVideoUrl(), patientQA.getVrJsonUrl(), patientQA.getVrWavUrl(), null);
     }
 
+    String genAudio =
+        patient.getSex() == Patient.Sex.MALE
+            ? "https://www.pixelgeom.com/livestream/lingyi/tmp/default_male.mp3"
+            : "https://www.pixelgeom.com/livestream/lingyi/tmp/default_female.mp3";
+
     if (StringUtils.isNotEmpty(patient.getDesc())) {
       String prompt =
           "#角色\n"
@@ -222,10 +232,10 @@ public class MainApplicationService {
               + "\n#病人回复";
 
       String generatedAnswer = llmService.sendPrompt(prompt);
-      String genAudio = null;
 
       if (!generatedAnswer.contains("请询问病情相关信息")) {
-        TTSDTO ttsdto = new TTSDTO(generatedAnswer, patient.getSex() == Patient.Sex.MALE);
+        String ttsId = conversationId + "-" + System.currentTimeMillis();
+        TTSDTO ttsdto = new TTSDTO(ttsId, generatedAnswer, patient);
         String resp =
             httpService.doPost(
                 "https://openspeech.bytedance.com/api/v1/tts",
@@ -233,10 +243,10 @@ public class MainApplicationService {
                 ttsdto);
         String base64String =
             JsonParser.parseString(resp).getAsJsonObject().get("data").getAsString();
-        String fileName = conversationId + "-" + System.currentTimeMillis() + ".mp3";
+        String fileName = ttsId + ".mp3";
 
         String filePath =
-            // "/Users/wangyifan/Downloads/"
+            // "/Users/wangyifan/Downloads/" + fileName;
             "/usr/share/nginx/livestream/tmp/" + fileName;
 
         try (FileOutputStream fos = new FileOutputStream(filePath)) {
@@ -252,7 +262,7 @@ public class MainApplicationService {
           generatedAnswer, patient.getSilentVideoUrl(), null, null, genAudio);
     }
 
-    return ChatAnswerVO.create(answer, patient.getSilentVideoUrl(), null, null, null);
+    return ChatAnswerVO.create(answer, patient.getSilentVideoUrl(), null, null, genAudio);
   }
 
   public String testLLM(String message) {
@@ -289,5 +299,31 @@ public class MainApplicationService {
   public ConversationStatsVO getConversationStats(String conversationId) {
     Conversation conversation = conversationRepo.findById(conversationId).get();
     return ConversationStatsVO.fromConversationStats(conversation.generateStats());
+  }
+
+  public MedicineVO getMedicines(String conversationId) {
+    Conversation conversation = conversationRepo.findById(conversationId).get();
+    return new MedicineVO(
+        conversation.getPatient().getCorrectMedicines(),
+        conversation.getPatient().getIncorrectMedicines());
+  }
+
+  public void prescribeMedicines(String conversationId, List<String> medicines) {
+    Conversation conversation = conversationRepo.findById(conversationId).get();
+    conversation.setMedicines(medicines);
+    conversationRepo.save(conversation);
+  }
+
+  public DiseaseOptionVO getConversationDiseaseOptions(String conversationId) {
+    Conversation conversation = conversationRepo.findById(conversationId).get();
+    return new DiseaseOptionVO(
+        conversation.getPatient().getCorrectDiseaseOptions(),
+        conversation.getPatient().getIncorrectDiseaseOptions());
+  }
+
+  public void diagnoseDisease(String conversationId, String disease) {
+    Conversation conversation = conversationRepo.findById(conversationId).get();
+    conversation.setDiagnosedDisease(disease);
+    conversationRepo.save(conversation);
   }
 }

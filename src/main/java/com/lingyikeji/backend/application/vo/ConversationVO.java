@@ -2,12 +2,11 @@ package com.lingyikeji.backend.application.vo;
 
 import com.lingyikeji.backend.domain.entities.Conversation;
 import com.lingyikeji.backend.domain.entities.Message;
+import java.util.LinkedList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /** Created by Yifan Wang on 2024/9/9. */
 @Getter

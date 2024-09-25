@@ -25,7 +25,12 @@ public class Patient extends BaseEntity {
   private String chiefComplaint;
   private String idleVideoUrl;
   private String silentVideoUrl;
+  private String voiceType;
   private Map<String, String> testResults;
+  private List<String> correctMedicines = new LinkedList<>();
+  private List<String> incorrectMedicines = new LinkedList<>();
+  private List<String> correctDiseaseOptions = new LinkedList<>();
+  private List<String> incorrectDiseaseOptions = new LinkedList<>();
 
   @Expose(serialize = false)
   private List<PatientQA> patientQAList = new LinkedList<>();
@@ -43,7 +48,6 @@ public class Patient extends BaseEntity {
     return this.getPatientQAList().stream()
         .map(PatientQA::getL1Category)
         .filter(Objects::nonNull)
-        // .filter(category -> !Objects.equals(category, "主诉"))
         .collect(Collectors.toSet());
   }
 

@@ -228,6 +228,9 @@ public class MainController {
 
   @PostMapping("/chat")
   public Resp chat(String conversationId, String question) {
+    if (StringUtils.isEmpty(question)) {
+      return Resp.success(null);
+    }
     return Resp.success(applicationService.chat(conversationId, question));
   }
 
@@ -248,6 +251,28 @@ public class MainController {
   @GetMapping("/getConversationStats")
   public Resp getConversationStats(String conversationId) {
     return Resp.success(Map.of("stats", applicationService.getConversationStats(conversationId)));
+  }
+
+  @GetMapping("/getMedicines")
+  public Resp getMedicines(String conversationId) {
+    return Resp.success(applicationService.getMedicines(conversationId));
+  }
+
+  @PostMapping("/prescribeMedicines")
+  public Resp prescribeMedicines(String conversationId, String medicines) {
+    applicationService.prescribeMedicines(conversationId, List.of(medicines.split(",")));
+    return Resp.success(Map.of("result", true));
+  }
+
+  @GetMapping("/getDiseaseOptions")
+  public Resp getDiseaseOptions(String conversationId) {
+    return Resp.success(applicationService.getConversationDiseaseOptions(conversationId));
+  }
+
+  @PostMapping("/diagnoseDisease")
+  public Resp diagnoseDisease(String conversationId, String disease) {
+    applicationService.diagnoseDisease(conversationId, disease);
+    return Resp.success(Map.of("result", true));
   }
 
   private boolean isNotAuthAdmin(String token) {

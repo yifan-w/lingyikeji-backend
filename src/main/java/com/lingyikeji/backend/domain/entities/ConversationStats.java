@@ -21,6 +21,7 @@ public class ConversationStats {
   private int hitChatCount = 0;
   private int missedChatCount = 0;
   private Patient patient;
+  private Conversation conversation;
   private Set<String> totalCategories = new HashSet<>();
   private Map<String, CategoryStats> statsByCategory = new HashMap<>();
   // helper variables
@@ -29,6 +30,7 @@ public class ConversationStats {
   private String chestSoundQuestion;
 
   public ConversationStats(Conversation conversation) {
+    this.conversation = conversation;
     this.patient = conversation.getPatient();
     this.totalCategories = conversation.getPatient().getAllL1Categories();
     this.totalCategories.forEach(

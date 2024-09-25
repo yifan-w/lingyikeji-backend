@@ -1,9 +1,11 @@
 package com.lingyikeji.backend.infra.gateway.dto;
 
+import com.lingyikeji.backend.domain.entities.Patient;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 /** Created by Yifan Wang on 2024/9/22. */
 @Getter
@@ -18,19 +20,16 @@ public class TTSDTO {
   private final Map<String, Object> request =
       new HashMap<>(
           Map.of(
-              "reqid",
-              "1",
-              "text_type",
-              "plain",
-              "operation",
-              "query",
-              "with_frontend",
-              0,
-              "split_sentence",
-              1));
+              "text_type", "plain", "operation", "query", "with_frontend", 0, "split_sentence", 1));
 
-  public TTSDTO(String text, boolean isMale) {
-    this.getAudio().put("voice_type", isMale ? "BV701_streaming" : "BV700_V2_streaming");
+  public TTSDTO(String id, String text, Patient patient) {
+    this.getAudio()
+        .put(
+            "voice_type",
+            StringUtils.isEmpty(patient.getVoiceType())
+                ? (patient.getSex() == Patient.Sex.MALE ? "BV701_streaming" : "BV115_streaming")
+                : patient.getVoiceType());
     this.getRequest().put("text", text);
+    this.getRequest().put("reqid", id);
   }
 }

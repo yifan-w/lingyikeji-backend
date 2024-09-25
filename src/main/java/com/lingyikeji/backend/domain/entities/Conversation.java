@@ -23,11 +23,14 @@ public class Conversation extends BaseEntity {
   @Reference
   private Department department;
 
-  @Reference private Patient patient;
+  @Reference(ignoreMissing = true)
+  private Patient patient;
 
   private String deptName;
   private String userName;
   private List<Message> msgList = new LinkedList<>();
+  private List<String> medicines = new LinkedList<>();
+  private String diagnosedDisease;
 
   public static Conversation create(
       String userName, Department department, Patient patient, List<Message> msgList) {
