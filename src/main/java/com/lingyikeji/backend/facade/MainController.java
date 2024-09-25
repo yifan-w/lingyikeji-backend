@@ -32,6 +32,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -273,6 +274,12 @@ public class MainController {
   public Resp diagnoseDisease(String conversationId, String disease) {
     applicationService.diagnoseDisease(conversationId, disease);
     return Resp.success(Map.of("result", true));
+  }
+
+  @ExceptionHandler
+  public Resp exceptionHandler(Exception e) {
+    logger.error("Exception: ", e);
+    return Resp.error(e.getMessage());
   }
 
   private boolean isNotAuthAdmin(String token) {
