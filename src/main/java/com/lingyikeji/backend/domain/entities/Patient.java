@@ -3,6 +3,7 @@ package com.lingyikeji.backend.domain.entities;
 import com.google.gson.annotations.Expose;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class Patient extends BaseEntity {
   private String idleVideoUrl;
   private String silentVideoUrl;
   private String voiceType;
-  private Map<String, String> testResults;
+  private Map<String, String> testResults = new HashMap<>();
   private List<String> correctMedicines = new LinkedList<>();
   private List<String> incorrectMedicines = new LinkedList<>();
   private List<String> correctDiseaseOptions = new LinkedList<>();

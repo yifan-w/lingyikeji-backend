@@ -30,8 +30,10 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -185,10 +187,22 @@ public class MainApplicationService {
     Conversation conversation = conversationRepo.findById(conversationId).get();
     Patient patient = conversation.getPatient();
     logger.info("patient id for conversation {}: {}", conversationId, patient.getId());
+
+    String genAudio =
+        StringUtils.isNotEmpty(conversation.getNoMatchAudioUrl())
+            ? conversation.getNoMatchAudioUrl()
+            : (patient.getSex() == Patient.Sex.MALE
+                ? "https://www.pixelgeom.com/livestream/lingyi/tmp/default_male.mp3"
+                : "https://www.pixelgeom.com/livestream/lingyi/tmp/default_female.mp3");
+
     // test results
     if (question.contains("胸片") || question.contains("听诊")) {
       conversation.addUserMsg(question);
       conversationRepo.save(conversation);
+
+      if (MapUtils.isEmpty(patient.getTestResults())) {
+        return ChatAnswerVO.create("请询问病情相关信息", patient.getSilentVideoUrl(), null, null, genAudio);
+      }
 
       return question.contains("胸片")
           ? ChatAnswerVO.createExamResults(
@@ -204,7 +218,10 @@ public class MainApplicationService {
 
     Optional<PatientQA> patientQAOptional =
         patient.getPatientQAList().stream()
-            .filter(patientQA -> patientQA.getA().contains(answer))
+            .filter(
+                patientQA ->
+                    patientQA.getA().contains(answer)
+                        && Math.abs(patientQA.getA().length() - answer.length()) < 3)
             .findFirst();
 
     if (patientQAOptional.isPresent()) {
@@ -213,10 +230,15 @@ public class MainApplicationService {
           answer, patientQA.getVideoUrl(), patientQA.getVrJsonUrl(), patientQA.getVrWavUrl(), null);
     }
 
-    String genAudio =
-        patient.getSex() == Patient.Sex.MALE
-            ? "https://www.pixelgeom.com/livestream/lingyi/tmp/default_male.mp3"
-            : "https://www.pixelgeom.com/livestream/lingyi/tmp/default_female.mp3";
+    // VR Patient
+    if (Objects.equals(patient.getId(), "66b4d61f1f01cc37dcc02327")) {
+      return ChatAnswerVO.create(
+          "请询问病情相关信息",
+          patient.getSilentVideoUrl(),
+          "https://www.pixelgeom.com/livestream/lingyi/vr/json/LZH_BL1_default.json",
+          "https://www.pixelgeom.com/livestream/lingyi/vr/wav/LZH_BL1_default.wav",
+          "https://www.pixelgeom.com/livestream/lingyi/tmp/default_female.mp3");
+    }
 
     if (StringUtils.isNotEmpty(patient.getDesc())) {
       String prompt =
@@ -225,7 +247,9 @@ public class MainApplicationService {
               + "#原始病历\n"
               + patient.getDesc()
               + "\n#任务\n"
-              + "首先理解你自己的“原始病历”，深刻熟悉自己的基本信息和病情等病历信息；然后针对“当前医生提问”，从“原始病历”中寻找相关信息，若在“原始病历”中能找到“当前医生提问”的相关信息，那么一步步思考做出合理的回复，若是找不到相关信息，那么请回复“请询问病情相关信息”。\n"
+              + "首先理解你自己的“原始病历”，深刻熟悉自己的基本信息和病情等病历信息；然后针对“当前医生提问”，从“原始病历”中寻找相关信息，若在“原始病历”中能找到“当前医生提问”的相关信息，那么一步步思考做出合理的回复。"
+              + "若是找不到相关信息，那么进一步判断医生的问题如果属于和人的身体相关、症状、主诉、既往病史、就诊经历、家庭情况、生活环境、家庭病史等合理医学范畴则如实回答没有对应的问题。例如“原始病历”并不包括“嗓子不疼”，但医生询问“嗓子疼不疼”，则回复“不疼”；或者”原始病历“并不包括”没有掉头发“，但医生询问”最近有没有掉头发“，则回复”没有掉头发“。"
+              + "若医生提问超出和人的身体相关、症状、主诉、既往病史、就诊经历、家庭情况、生活环境、家庭病史等范畴，请回复“请询问病情相关信息”。\n"
               + "切记要么输出病人回复内容，要么输出请询问病情相关信息，不要输出其他任何无关内容。\n"
               + "#当前医生提问\n"
               + question
@@ -236,6 +260,7 @@ public class MainApplicationService {
       if (!generatedAnswer.contains("请询问病情相关信息")) {
         String ttsId = conversationId + "-" + System.currentTimeMillis();
         TTSDTO ttsdto = new TTSDTO(ttsId, generatedAnswer, patient);
+        logger.info("ttsdto: {}", GsonUtils.GSON.toJson(ttsdto));
         String resp =
             httpService.doPost(
                 "https://openspeech.bytedance.com/api/v1/tts",
@@ -245,8 +270,7 @@ public class MainApplicationService {
             JsonParser.parseString(resp).getAsJsonObject().get("data").getAsString();
         String fileName = ttsId + ".mp3";
 
-        String filePath =
-            // "/Users/wangyifan/Downloads/" + fileName;
+        String filePath = // "/Users/wangyifan/Downloads/" + fileName;
             "/usr/share/nginx/livestream/tmp/" + fileName;
 
         try (FileOutputStream fos = new FileOutputStream(filePath)) {

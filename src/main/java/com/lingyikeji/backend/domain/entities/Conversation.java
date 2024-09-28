@@ -30,6 +30,7 @@ public class Conversation extends BaseEntity {
   private String userName;
   private List<Message> msgList = new LinkedList<>();
   private List<String> medicines = new LinkedList<>();
+  private String noMatchAudioUrl;
   private String diagnosedDisease;
 
   public static Conversation create(

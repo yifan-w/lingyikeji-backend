@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 @Setter
 public class TTSDTO {
   private final Map<String, String> app =
-      Map.of("appid", "9336944303", "token", "access_token", "cluster", "volcano_tts");
+      new HashMap<>(Map.of("appid", "9336944303", "token", "access_token"));
   private final Map<String, String> user = Map.of("uid", "388808087185088");
   private final Map<String, Object> audio =
       new HashMap<>(
@@ -23,6 +23,8 @@ public class TTSDTO {
               "text_type", "plain", "operation", "query", "with_frontend", 0, "split_sentence", 1));
 
   public TTSDTO(String id, String text, Patient patient) {
+    this.getApp()
+        .put("cluster", patient.getSex() == Patient.Sex.MALE ? "volcano_tts" : "volcano_icl");
     this.getAudio()
         .put(
             "voice_type",

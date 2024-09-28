@@ -39,7 +39,7 @@ public class ConversationRepoImpl implements ConversationRepo {
     return datastore
         .find(Conversation.class)
         .filter(eq("userName", userName))
-        .iterator(new FindOptions().sort(Sort.descending("createdAt")))
+        .iterator(new FindOptions().sort(Sort.descending("createdAt")).limit(10))
         .toList();
   }
 
