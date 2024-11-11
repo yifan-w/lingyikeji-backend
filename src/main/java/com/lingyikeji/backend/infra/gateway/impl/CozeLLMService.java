@@ -22,15 +22,14 @@ import reactor.core.publisher.Flux;
 public class CozeLLMService implements LLMService {
   private static final Logger logger = LogManager.getLogger(CozeLLMService.class);
   private static final String BOT_ID = "7393595533455736839";
+  private static final String TOKEN = System.getenv("coze_token");
 
   private final WebClient client =
       WebClient.builder()
           .baseUrl("https://api.coze.com/v3/chat")
           .defaultHeaders(
               httpHeaders -> {
-                httpHeaders.set(
-                    "Authorization",
-                    "Bearer pat_aLoW3ZA8z6KqkUJhd8ykxUTjY8LnokXp0clqw12ggG4pFFOXti6b7RbNBiRfzA75");
+                httpHeaders.set("Authorization", "Bearer " + TOKEN);
                 httpHeaders.set("Content-Type", "application/json");
               })
           .build();
